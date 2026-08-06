@@ -1,0 +1,115 @@
+/* Mic button — sits inside .ci-input-frame, left of .ci-send.
+   Sizing and shape mirror .ci-send so the two read as a pair; only the
+   fill differs (outlined, so the send button stays the primary action). */
+
+.ci-mic-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.ci-mic {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border-secondary);
+  border-radius: 100px;
+  background: transparent;
+  color: var(--brand-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.ci-mic:hover:not(:disabled) {
+  background: var(--bg-tertiary);
+}
+
+.ci-mic:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ci-mic-icon {
+  width: 22px;
+  height: 22px;
+}
+
+/* Recording: a filled brand-coloured button with a pulsing dot. The pulse is
+   the only moving thing in the input frame, so it reads as "live" without a
+   label. */
+.ci-mic.is-recording {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+}
+
+.ci-mic-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--bg-neutral-primary);
+  animation: ci-mic-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes ci-mic-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.75); }
+}
+
+.ci-mic-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-neutral-secondary);
+  border-top-color: var(--brand-primary);
+  border-radius: 50%;
+  animation: ci-mic-spin 0.7s linear infinite;
+}
+
+@keyframes ci-mic-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Respect a reduced-motion preference: keep the state readable, drop the
+   animation. Without this the pulse runs for the full two minutes. */
+@media (prefers-reduced-motion: reduce) {
+  .ci-mic-dot,
+  .ci-mic-spinner {
+    animation: none;
+  }
+}
+
+.ci-mic.is-error {
+  border-color: var(--border-neutral-secondary);
+  color: var(--txt-neutral-tertiary);
+}
+
+.ci-mic-timer {
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  color: var(--txt-neutral-tertiary);
+}
+
+/* Floated above the frame rather than inline: the input frame has
+   overflow:hidden and a fixed min-height, so an inline message would be
+   clipped instead of pushing the layout. */
+.ci-mic-error {
+  position: absolute;
+  bottom: calc(100% + var(--space-sm));
+  left: 0;
+  z-index: 5;
+  width: max-content;
+  max-width: 280px;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-neutral-secondary);
+  border-radius: var(--radius-md);
+  background: var(--bg-neutral-primary);
+  box-shadow: var(--card-shadow);
+  color: var(--txt-neutral-secondary);
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+}

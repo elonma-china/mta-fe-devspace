@@ -5,6 +5,7 @@ import { ReactComponent as SendIcon } from "assets/images/send.svg";
 import { UploadFileSection, SourceCard, UploadFileModal } from "features/documents/components";
 import { AlertModal } from "components/common";
 import ChatMessageItem from "./ChatMessageItem";
+import MicButton from "./MicButton";
 import ThinkingSection from "./ThinkingSection";
 import { resizeTextarea } from "./resizeTextarea";
 import { isSelectionRequired, resolveSendDocIds } from "./chatSendGuard";
@@ -246,6 +247,19 @@ export default function ChatInterface({
               handleSend(input);
               setInput("");
             }
+          }}
+        />
+        {/* Dev Space: dictate into the box, never straight onto the wire.
+            Appends so a partly-typed message survives, and leaves sending to
+            the user because STT is not reliable enough to ask on its own. */}
+        <MicButton
+          disabled={isDisabled || isStreaming}
+          onTranscribed={(text) => {
+            setInput((prev) => (prev ? `${prev} ${text}` : text).trim());
+            requestAnimationFrame(() => {
+              inputRef.current?.focus();
+              resizeTextarea(inputRef.current);
+            });
           }}
         />
         <button
