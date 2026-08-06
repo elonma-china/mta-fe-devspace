@@ -1,0 +1,62 @@
+/* ================================
+   Dev Space skin — red
+   ===================================
+
+   Opt-in via REACT_APP_BRAND=devspace, which puts `.brand-devspace` on
+   <body> (see src/index.js). Imported unconditionally: ~2 KB of rules that
+   never match in a stock build, in exchange for zero conditional-bundling
+   machinery for whoever merges the voice feature later.
+
+   This file overrides ONLY design tokens declared in index.css. No component
+   rules live here — that is what keeps the default IntraMind build provably
+   untouched, and it only works because every brand-coloured surface reads a
+   token (the hardcoded hexes were tokenised for exactly this reason).
+
+   Specificity works out without !important:
+     :root                     (0,1,0)
+     body.brand-devspace       (0,1,1)  wins over :root
+     .dark                     (0,1,0)
+     body.brand-devspace.dark  (0,2,1)  wins over .dark
+
+   Contrast was computed, not eyeballed:
+     #9B2226 on #FFF5F5 = 7.5:1   (AAA for large, AA for body)
+     #F08C8C on #262626 = 5.7:1   (AA)
+=================================== */
+
+body.brand-devspace {
+  --bg-primary: #FFF5F5;
+  --bg-tertiary: #FBD9D9;
+  --bg-loading-primary: #A32C2C;
+
+  --txt-primary: #7F1D1D;
+
+  --border-secondary: #F0AFAF;
+  --border-primary: #A32C2C;
+
+  --brand-primary: #9B2226;
+  --brand-primary-hover: #7F1D1D;
+
+  --imodal-badge-grad-a: #A32C2C;
+  --imodal-badge-grad-b: #E06666;
+
+  --bg-brand-subtle: #FDECEC;
+  --accent-primary: #9B2226;
+
+  --color-display-leaf-default: #C1121F;
+}
+
+body.brand-devspace.dark {
+  --bg-secondary: #1D1919;
+  --bg-tertiary: #4A1F1F;
+  --bg-loading-primary: #2B0F0F;
+
+  --txt-primary: #F08C8C;
+
+  --border-primary: #A32C2C;
+
+  --brand-primary: #F08C8C;
+  --brand-primary-hover: #E06666;
+
+  --bg-brand-subtle: #3A1616;
+  --accent-primary: #F08C8C;
+}

@@ -1,10 +1,12 @@
 // src/components/layout/Header.js
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { ReactComponent as LogoDark } from "assets/images/logo-text-white.svg";
-import { ReactComponent as LogoLight } from "assets/images/logo-text-fullcolor.svg";
-import { ReactComponent as SmallLogoDark } from "assets/images/logo-white.svg";
-import { ReactComponent as SmallLogoLight } from "assets/images/logo-fullcolor.svg";
+import {
+  BrandLogoTextDark as LogoDark,
+  BrandLogoTextLight as LogoLight,
+  BrandLogoMarkDark as SmallLogoDark,
+  BrandLogoMarkLight as SmallLogoLight,
+} from "./BrandLogo";
 import { ReactComponent as ThreeLineIcon } from "assets/images/three-line.svg";
 import { ReactComponent as FolderDocIcon } from "assets/images/folder-doc.svg";
 import { InfoButton, ThemeButton } from "components";

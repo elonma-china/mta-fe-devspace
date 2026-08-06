@@ -289,7 +289,7 @@
 .ufs-outline-btn:focus-visible,
 .ufm-close-btn:focus-visible,
 .ufs-dropzone:focus-visible {
-  outline: 2px solid #267C69;
+  outline: 2px solid var(--border-primary);
   outline-offset: 2px;
 }
 
@@ -339,3 +339,16 @@
 }
 
 @media (max-width: 375px) {}
+/* Dev Space read-only state: the dropzone becomes a notice, not a target.
+   Rendered instead of the dropzone when REACT_APP_READONLY_CORPUS=true. */
+.ufs-dropzone.is-readonly {
+  cursor: default;
+  border-style: dashed;
+  border-color: var(--border-neutral-secondary);
+  background: var(--bg-neutral-secondary);
+  text-align: center;
+}
+
+.ufs-dropzone.is-readonly .ufs-drop-title {
+  color: var(--txt-neutral-secondary);
+}

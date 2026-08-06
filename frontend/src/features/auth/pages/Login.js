@@ -2,7 +2,11 @@
 import React, { useState } from "react";
 import "./Login.css";
 import { login as apiLogin } from "../api";
-import { ReactComponent as Logo } from "assets/images/logo-fullcolor.svg";
+import {
+  BrandLogoMarkLight as Logo,
+  BRAND_TAGLINE,
+  BRAND_SUBTITLE,
+} from "components/layout/BrandLogo";
 import { ReactComponent as EyeIcon } from "assets/images/eye.svg";
 
 function Login({ onLogin }) {
@@ -39,8 +43,8 @@ function Login({ onLogin }) {
       {/* Left side */}
       <div id="login-left" className="login-left">
         <Logo className="login-logo" />
-        <h1 className="login-heading">IntraMind - Trợ lý ảo nội bộ</h1>
-        <p className="login-subtitle">Thông Minh - An Toàn - Tin Cậy</p>
+        <h1 className="login-heading">{BRAND_TAGLINE}</h1>
+        <p className="login-subtitle">{BRAND_SUBTITLE}</p>
       </div>
 
       {/* Right side */}

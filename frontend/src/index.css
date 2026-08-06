@@ -28,6 +28,17 @@
   --border-secondary: #aae5d3;
   --border-primary: #267c69;
   --brand-primary: #226355;
+  /* Darker brand for pressed/hover fills. Was the literal #1c5b4c in three
+     admin modals, which the skin could not reach. */
+  --brand-primary-hover: #1c5b4c;
+
+  /* These two were used ONLY as var(--x, #fallback) — never declared, so the
+     fallback always won and no theme could touch them. Declared here they
+     become skinnable for free.
+       --bg-brand-subtle: DataTable, DocumentManagement, RepoPickerModal
+       --accent-primary:  DocumentViewer, ResizeHandle */
+  --bg-brand-subtle: #EAF7F2;
+  --accent-primary: #226355;
 
   --content-neutral-strong: #121212;
 
@@ -107,6 +118,10 @@
   --border-primary: #267c69;
   --border-secondary: #595959;
   --brand-primary: #77d1b8;
+  --brand-primary-hover: #5bb69d;
+
+  --bg-brand-subtle: #16302b;
+  --accent-primary: #77d1b8;
 }
 
 /* Tablet Overrides */

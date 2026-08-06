@@ -4,6 +4,9 @@ import "./UserMenu.css";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ReactComponent as Person } from "assets/images/person.svg";
 import { ReactComponent as Logout } from "assets/images/logout.svg";
+// Stays the raw asset, not BrandLogo: this glyph is `fill="currentColor"`, so
+// it already takes the skin's brand colour from CSS. Swapping in the Dev Space
+// asset (which carries a baked-in fill) would make it LESS themeable.
 import { ReactComponent as IntraMind } from "assets/images/intramind.svg";
 import { ReactComponent as Log } from "assets/images/log.svg";
 import { ReactComponent as FolderStar } from "assets/images/folder-star.svg";

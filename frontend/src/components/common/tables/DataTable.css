@@ -135,7 +135,7 @@
 }
 
 .icon-svg {
-  color: #226355;
+  color: var(--brand-primary);
   width: 20px;
   height: 20px;
   margin: auto;
@@ -167,7 +167,7 @@
   font-weight: 500;
   font-size: 14px;
   line-height: 20px;
-  color: #226355;
+  color: var(--brand-primary);
 }
 
 .page:hover:not(.page--ellipsis) {
@@ -175,7 +175,7 @@
 }
 
 .page--active {
-  background: #D6F2E8;
+  background: var(--bg-tertiary);
   font-weight: 600;
 }
 

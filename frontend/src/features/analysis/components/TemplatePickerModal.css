@@ -46,7 +46,7 @@
   background: #f5f5f5;
 }
 .tp-close:focus-visible {
-  outline: 2px solid #267c69;
+  outline: 2px solid var(--border-primary);
   outline-offset: 2px;
 }
 
@@ -106,8 +106,8 @@
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .tp-card:hover {
-  border-color: #267c69;
-  box-shadow: 0 0 0 1px #267c69;
+  border-color: var(--border-primary);
+  box-shadow: 0 0 0 1px var(--border-primary);
 }
 
 .tp-card-label {

@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import "./UploadFileSection.css";
 import { ReactComponent as UploadFileIcon } from "assets/images/upload-file.svg";
-import { getEnv } from "config";
+import { getEnv, READONLY_CORPUS } from "config";
 
 /**
  * UploadFileSection
@@ -179,6 +179,27 @@ export default function UploadFileSection({
   };
 
   const showLoadingOverlay = autoUpload && isUploading && !disabled;
+
+  // Dev Space reads a corpus it does not own. Every upload path in the app —
+  // chat, the upload modal, and both admin repository screens — renders this
+  // component, so refusing here covers all of them from one place.
+  //
+  // This is the UX half only. The gateway's DEV_READONLY_CORPUS guard is what
+  // actually protects the corpus, because a hidden button is bypassable and a
+  // deleted document is not recoverable.
+  if (READONLY_CORPUS) {
+    return (
+      <div className="ufs-dropzone is-readonly" role="note">
+        <div className="ufs-drop-text">
+          <div className="ufs-drop-title">Bản thử nghiệm chỉ đọc tài liệu</div>
+          <div className="ufs-drop-caption">
+            Dev Space không được phép tải tài liệu lên kho thật. Dùng{" "}
+            <strong>“Chọn từ kho”</strong> để đưa tài liệu có sẵn vào hội thoại.
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

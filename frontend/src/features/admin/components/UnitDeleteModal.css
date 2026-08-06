@@ -107,7 +107,7 @@
 }
 
 .udm-confirm {
-  background: #1c5b4c;
+  background: var(--brand-primary-hover);
   color: #fff;
   border: none;
   border-radius: 999px;

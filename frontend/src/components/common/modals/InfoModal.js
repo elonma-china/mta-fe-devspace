@@ -4,6 +4,7 @@ import { ReactComponent as X } from "assets/images/x.svg";
 import { ReactComponent as Help } from "assets/images/help.svg";
 import { ReactComponent as Info } from "assets/images/info.svg";
 import "./InfoModal.css";
+import { IS_DEVSPACE, BRAND_NAME } from "components/layout/BrandLogo";
 
 /**
  * InfoModal
@@ -19,9 +20,13 @@ import "./InfoModal.css";
 export default function InfoModal({
   open,
   onClose,
-  title = "IntraMind",
-  bodyTop = "Trợ lý ảo nội bộ là phần mềm được xây dựng dựa trên mô hình ngôn ngữ lớn đã tối ưu hóa và cài đặt trên máy tính cá nhân, cho phép người dùng phân tích và tương tác với các tài liệu của mình mà không cần kết nối Internet. Hệ thống tích hợp mô hình ngôn ngữ tiên tiến hỗ trợ tìm kiếm, tóm tắt, trả lời câu hỏi, và soạn thảo nội dung dựa trên chính tài liệu nội bộ.",
-  bodyBottom = "Toàn bộ dữ liệu được xử lý cục bộ, đảm bảo bảo mật tuyệt đối — phù hợp cho các môi trường có yêu cầu cao về an toàn thông tin.",
+  title = BRAND_NAME,
+  bodyTop = IS_DEVSPACE
+    ? "DEV SPACE là BẢN THỬ NGHIỆM của IntraMind, dùng để chạy thử tính năng giọng nói (ghi âm câu hỏi và tổng quan âm thanh) trước khi đưa vào bản chính thức. Đây không phải hệ thống thật."
+    : "Trợ lý ảo nội bộ là phần mềm được xây dựng dựa trên mô hình ngôn ngữ lớn đã tối ưu hóa và cài đặt trên máy tính cá nhân, cho phép người dùng phân tích và tương tác với các tài liệu của mình mà không cần kết nối Internet. Hệ thống tích hợp mô hình ngôn ngữ tiên tiến hỗ trợ tìm kiếm, tóm tắt, trả lời câu hỏi, và soạn thảo nội dung dựa trên chính tài liệu nội bộ.",
+  bodyBottom = IS_DEVSPACE
+    ? "Bản này ĐỌC kho tài liệu thật nhưng không được phép ghi: tải lên, xử lý lại và xoá tài liệu đều bị chặn. Dùng \"Chọn từ kho\" để đưa tài liệu có sẵn vào hội thoại."
+    : "Toàn bộ dữ liệu được xử lý cục bộ, đảm bảo bảo mật tuyệt đối — phù hợp cho các môi trường có yêu cầu cao về an toàn thông tin.",
   supportTitle = "Để được hỗ trợ kỹ thuật, vui lòng liên hệ",
   supportSubtitle = "đồng chí Phạm Trường Sơn (SĐT: 098 99 44 394)",
 }) {
