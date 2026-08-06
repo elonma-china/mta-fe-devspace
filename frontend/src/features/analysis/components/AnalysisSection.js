@@ -9,6 +9,10 @@ import { ReactComponent as MindmapIcon } from "assets/images/mindmap.svg";
 import { ReactComponent as ReportIcon } from "assets/images/report.svg";
 import { ReactComponent as DeleteIcon } from "assets/images/delete.svg";
 import { InfoPanel, TemplatePickerModal, DraftUploadModal } from ".";
+import AudioOverviewModal from "./AudioOverviewModal";
+import AudioOverviewPanel from "./AudioOverviewPanel";
+import { AudioOverviewCard, AudioOverviewItem } from "./AudioOverviewTool";
+import useAudioOverviewStore from "stores/useAudioOverviewStore";
 import {
   getSummaryStatus,
   getMindmapStatus,
@@ -83,6 +87,24 @@ export default function AnalysisSection({ onCreated, onRemoved }) {
   } = useAnalysisStore();
 
   const { showModal, hideModal } = useModalStore();
+
+  // ── Audio overview (Dev Space) ──
+  // Kept out of useAnalysisStore on purpose: info_table's CHECK constraint
+  // (orm.py info_table_type_check) permits only summary/mindmap/report/
+  // directive_review, so persisting an episode there needs a migration.
+  // Its own store + localStorage avoids forcing that on the FE team's merge.
+  const audioEpisode = useAudioOverviewStore(
+    (s) => s.episodes[conversationId]
+  );
+  const audioOpen = useAudioOverviewStore(
+    (s) => s.openConvId === conversationId && conversationId != null
+  );
+  const audioStore = useAudioOverviewStore;
+
+  useEffect(() => {
+    // Restores an in-flight taskId after a reload, so polling resumes.
+    if (conversationId) audioStore.getState().hydrate(conversationId);
+  }, [conversationId, audioStore]);
 
   // animType is purely UI animation state — stays local
   const [animType, setAnimType] = useState(null);
@@ -416,6 +438,82 @@ export default function AnalysisSection({ onCreated, onRemoved }) {
     }
   };
 
+  // ── Audio overview handlers ──
+  const handleAudioOverview = () => {
+    if (!conversationId) {
+      showModal(AlertModal, {
+        title: "Tạo sổ ghi chú trước",
+        message: "Vui lòng tạo hoặc chọn một sổ ghi chú trước.",
+      });
+      return;
+    }
+    if (audioEpisode) {
+      showModal(AlertModal, {
+        title: "Đã có tập podcast",
+        message:
+          "Mỗi sổ ghi chú giữ một tập. Xoá tập hiện tại trước khi tạo tập mới.",
+      });
+      return;
+    }
+    showModal(AudioOverviewModal, {
+      documentCount: selectedDocumentIds.length,
+      onSubmit: async ({ language, focus, targetMinutes }) => {
+        const firstDoc = docsState.find(
+          (d) => String(d.id) === String(selectedDocumentIds[0])
+        );
+        try {
+          await audioStore.getState().submit({
+            conversationId,
+            documentIds: selectedDocumentIds,
+            language,
+            focus,
+            targetMinutes,
+            name: `Podcast — ${firstDoc?.name || "Tài liệu"}`,
+          });
+        } catch (e) {
+          showModal(AlertModal, {
+            title: "Lỗi xử lý",
+            message:
+              e?.status === 403
+                ? "Tính năng tổng quan âm thanh đang tắt trên máy chủ."
+                : "Không thể khởi tạo tập podcast.",
+          });
+        }
+      },
+    });
+  };
+
+  const handleAudioCancel = async () => {
+    try {
+      await audioStore.getState().cancel(conversationId);
+    } catch {
+      // Cancellation is cooperative; the poll reports the real outcome. A
+      // failed request here must not fake a cancelled state.
+    }
+  };
+
+  const handleAudioDelete = () => {
+    showModal(DeleteModal, {
+      title: "Xoá tập podcast",
+      message: "Bạn chắc chắn muốn xoá tập podcast này?",
+      onConfirm: async () => {
+        try {
+          await audioStore.getState().remove(conversationId);
+        } catch (e) {
+          showModal(AlertModal, {
+            title: "Chưa xoá được",
+            message:
+              e?.status === 409
+                ? "Tập đang được tạo. Huỷ trước rồi xoá."
+                : "Không xoá được tập podcast.",
+          });
+          return;
+        }
+        hideModal();
+      },
+    });
+  };
+
   // ── Delete handler ──
   const handleDelete = async (id) => {
     try {
@@ -435,7 +533,13 @@ export default function AnalysisSection({ onCreated, onRemoved }) {
 
   return (
     <>
-      {selectedInfo ? (
+      {audioOpen && audioEpisode ? (
+        <AudioOverviewPanel
+          episode={audioEpisode}
+          onClose={() => audioStore.getState().close()}
+          onDelete={handleAudioDelete}
+        />
+      ) : selectedInfo ? (
         <InfoPanel
           item={selectedInfo}
           onClose={clearSelection}
@@ -458,8 +562,15 @@ export default function AnalysisSection({ onCreated, onRemoved }) {
                 <div className="ap-title">{label}</div>
               </div>
             ))}
+            <AudioOverviewCard onClick={handleAudioOverview} />
           </div>
           <div className="ap-list">
+            <AudioOverviewItem
+              conversationId={conversationId}
+              onOpen={(id) => audioStore.getState().open(id)}
+              onRequestCancel={handleAudioCancel}
+              onRequestDelete={handleAudioDelete}
+            />
             {combined.map((item) => {
               const meta = typeMap[item.type] || {};
               const isProcessing =

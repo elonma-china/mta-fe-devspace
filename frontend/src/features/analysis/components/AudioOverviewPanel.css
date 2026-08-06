@@ -1,0 +1,131 @@
+/* Audio-overview player panel. Sits where InfoPanel sits, so it inherits the
+   same card framing tokens (--card-radius / --card-shadow / --card-padding). */
+
+.ao-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--card-padding);
+  background: var(--bg-neutral-primary);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+}
+
+.ao-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-md);
+}
+
+.ao-panel-title {
+  margin: 0 0 var(--space-xs);
+  font-family: var(--title-font-family);
+  font-feature-settings: var(--title-font-feature-settings);
+  font-size: var(--font-size-h3);
+  color: var(--txt-neutral-primary);
+}
+
+.ao-panel-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--txt-neutral-tertiary);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.ao-panel-dot {
+  opacity: 0.5;
+}
+
+/* The format badge is worth surfacing: on a host without ffmpeg the service
+   falls back from mp3 to wav, and the file is ~10x bigger. Seeing WAV here
+   explains a slow load rather than leaving it a mystery. */
+.ao-panel-badge {
+  padding: 1px var(--space-xs);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-xs);
+  color: var(--brand-primary);
+}
+
+.ao-panel-tools {
+  display: flex;
+  gap: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.ao-panel-btn {
+  padding: var(--space-xs) var(--space-md);
+  border: 1px solid var(--border-neutral-secondary);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--txt-neutral-tertiary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}
+
+.ao-panel-btn:hover {
+  border-color: var(--border-primary);
+  color: var(--brand-primary);
+}
+
+.ao-player {
+  width: 100%;
+}
+
+.ao-panel-loading,
+.ao-panel-error {
+  margin: 0;
+  color: var(--txt-neutral-tertiary);
+  font-size: var(--font-size-sm);
+}
+
+.ao-transcript {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.ao-transcript-title {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--txt-neutral-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ao-turn {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: var(--space-md);
+  align-items: baseline;
+}
+
+.ao-turn-speaker {
+  color: var(--txt-neutral-tertiary);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+/* Only the host is brand-coloured. Colouring both speakers would make the
+   two-voice structure harder to scan, not easier. */
+.ao-turn--host .ao-turn-speaker {
+  color: var(--brand-primary);
+}
+
+.ao-turn-text {
+  margin: 0;
+  color: var(--txt-neutral-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .ao-turn {
+    grid-template-columns: 1fr;
+    gap: var(--space-xs);
+  }
+}

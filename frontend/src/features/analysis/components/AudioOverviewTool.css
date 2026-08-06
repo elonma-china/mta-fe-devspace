@@ -1,0 +1,19 @@
+/* Audio-overview list row. The card and row reuse .ap-feature / .ap-item from
+   AnalysisSection.css so the fifth tool is visually indistinguishable from the
+   four DB-backed ones; only the cancel control is new. */
+
+.ao-item-cancel {
+  flex-shrink: 0;
+  padding: var(--space-xs) var(--space-md);
+  border: 1px solid var(--border-neutral-secondary);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--txt-neutral-tertiary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}
+
+.ao-item-cancel:hover {
+  border-color: var(--border-primary);
+  color: var(--brand-primary);
+}
