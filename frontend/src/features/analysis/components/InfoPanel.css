@@ -1,0 +1,238 @@
+/* =========================================
+   1. MAIN CONTAINER & LAYOUT
+   ========================================= */
+.info-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+
+  /* Centralize Typography */
+  font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+  color: var(--txt-neutral-primary);
+}
+
+/* =========================================
+   2. HEADER SECTION
+   ========================================= */
+.ip-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border-secondary);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+/* Back Button */
+.ip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-secondary);
+  background: var(--bg-secondary);
+  color: var(--txt-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ip-btn:hover {
+  background: var(--bg-tertiary);
+}
+
+/* Title */
+.ip-title {
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+/* Action Icons (Copy, Expand, Delete) */
+.ip-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ip-actions svg {
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  /* Fixed: Changed undefined --txt-secondary to --txt-neutral-tertiary */
+  color: var(--txt-neutral-tertiary);
+  transition: background 0.2s;
+}
+
+/* Story 137: copy outcome shown next to the button. A failed copy used to be
+   silent (console only), so the button read as dead on insecure origins. */
+.ip-copy-status {
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ip-copy-status--ok {
+  color: var(--txt-neutral-tertiary);
+}
+
+.ip-copy-status--fail {
+  color: var(--txt-danger, #b3261e);
+}
+
+.ip-actions svg:hover {
+  /* Fixed: Replaced hardcoded rgba with variable */
+  background: var(--bg-neutral-secondary);
+  color: var(--txt-neutral-primary);
+}
+
+/* Sub-metadata (Date, Doc count) */
+.ip-submeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* Fixed: Changed undefined --txt-secondary to --txt-neutral-tertiary */
+  color: var(--txt-neutral-tertiary);
+  font-size: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid transparent;
+}
+
+.ip-dot {
+  opacity: 0.6;
+}
+
+/* =========================================
+   3. CONTENT AREA
+   ========================================= */
+.ip-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-md) var(--space-xs) var(--space-xl) 0;
+  
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Headings */
+.ip-content :is(h1, h2, h3, h4, h5, h6) {
+  margin: var(--space-xl) 0 var(--space-md);
+  letter-spacing: -0.01em;
+  font-weight: 600;
+  color: var(--txt-neutral-primary);
+}
+
+.ip-content h1 { 
+  font-size: 1.5em; 
+  border-bottom: 1px solid var(--border-neutral-primary); 
+  padding-bottom: 0.3em; 
+}
+.ip-content h2 { 
+  font-size: 1.3em; 
+  border-bottom: 1px solid var(--border-neutral-primary); 
+  padding-bottom: 0.3em; 
+}
+.ip-content h3 { font-size: 1.1em; }
+
+/* Text Elements */
+.ip-content p {
+  margin: var(--space-md) 0;
+}
+
+.ip-content blockquote {
+  margin: var(--space-lg) 0;
+  padding-left: var(--space-lg);
+  border-left: 4px solid var(--border-secondary);
+  color: var(--txt-neutral-tertiary);
+}
+
+.ip-content ul,
+.ip-content ol {
+  margin: var(--space-md) 0 var(--space-md) 24px;
+  padding: 0;
+}
+
+.ip-content li {
+  margin: var(--space-xs) 0;
+}
+
+.ip-content a {
+  color: var(--brand-primary);
+  text-decoration: none;
+}
+
+.ip-content a:hover {
+  text-decoration: underline;
+}
+
+/* Code Blocks (Block Level) */
+.ip-content pre {
+  border: 1px solid var(--border-neutral-secondary);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  overflow: auto;
+  background: var(--bg-neutral-secondary);
+  margin: var(--space-lg) 0;
+}
+
+/* Inline Code */
+.ip-content code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 85%;
+  background: var(--bg-neutral-secondary); 
+  color: var(--txt-neutral-secondary);
+  padding: 0.2em 0.4em;
+  border-radius: var(--radius-md);
+}
+
+/* Reset for Code inside Pre (don't double background) */
+.ip-content pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  font-size: 13px;
+}
+
+/* =========================================
+   4. TABLE STYLES
+   ========================================= */
+.ip-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  display: block;
+  overflow-x: auto;
+  border-spacing: 0;
+}
+
+.ip-content th,
+.ip-content td {
+  border: 1px solid var(--border-neutral-secondary);
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.ip-content th {
+  background-color: var(--bg-tertiary);
+  font-weight: 600;
+  color: var(--txt-neutral-primary);
+}

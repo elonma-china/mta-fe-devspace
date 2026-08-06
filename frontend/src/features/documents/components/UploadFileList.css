@@ -1,0 +1,183 @@
+/* Scrollable wrapper for file list */
+.ufl-wrapper {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (min-width: 769px) {
+  .ufl-wrapper {
+    max-height: 202px;
+    /* Fits exactly 3 rows of items (64px * 3 + 12px * 2 gap = 140px plus 2px padding buffer) */
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 8px;
+  }
+
+  /* Custom scrollbar styling */
+  .ufl-wrapper::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .ufl-wrapper::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .ufl-wrapper::-webkit-scrollbar-thumb {
+    background: var(--border-neutral-secondary, #e2e8f0);
+    border-radius: 3px;
+  }
+
+  .ufl-wrapper::-webkit-scrollbar-thumb:hover {
+    background: var(--txt-disable, #94a3b8);
+  }
+}
+
+/* Root container: Frame 10169 */
+.ufl-container {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 24px;
+  row-gap: 12px;
+  width: 100%;
+  max-width: 752px;
+}
+
+/* Columns: Frame 10166 / Frame 10168 */
+.ufl-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0;
+  gap: 12px;
+
+  flex: 1 1 0;
+}
+
+/* File card: Frame 37 / 10156 / 10157 */
+.ufl-item {
+  box-sizing: border-box;
+
+  width: calc((100% - 24px) / 2);
+
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  gap: 8px;
+
+  min-height: 64px;
+
+  border: 1px solid var(--border-neutral-secondary);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+}
+
+/* Main content: icon + text block (Frame 10160..) */
+.ufl-item-main {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0;
+  gap: 4px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+/* File icon: insert_drive_file */
+.ufl-item-icon {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ufl-item-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Text block: Frame 10161 */
+.ufl-item-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0;
+  gap: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+/* File name: text-Body/medium */
+.ufl-item-name {
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
+  font-style: Medium;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.02em;
+  width: 100%;
+
+  color: var(--txt-neutral-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Size text: text-caption/normal */
+.ufl-item-size {
+  margin-top: 0;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
+  font-style: Medium;
+  font-weight: 450;
+  font-size: 12px;
+  line-height: 16px;
+
+  color: var(--txt-disable);
+}
+
+/* Delete button: trash icon */
+.ufl-item-delete {
+  width: 24px;
+  height: 24px;
+  flex: none;
+
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin-left: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+}
+
+.ufl-item-delete svg {
+  width: 24px;
+  height: 24px;
+  color: var(--txt-neutral-primary);
+}
+
+/* Optional hover states */
+/* .ufl-item:hover {
+  border-color: #bfbfbf;
+  background: #fafafa;
+} */
+
+.ufl-item-delete:hover svg path,
+.ufl-item-delete:hover svg {
+  /* adjust if your delete.svg has path fills */
+  filter: brightness(0.6);
+}
+
+/* ===================== */
+/* Responsive Overrides  */
+/* ===================== */
+@media (max-width: 768px) {
+  .ufl-item {
+    width: 100%;
+  }
+}

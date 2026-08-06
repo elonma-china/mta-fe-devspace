@@ -1,0 +1,268 @@
+/* src/features/admin/components/UnitFormModal.css */
+
+.ufm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.ufm-dialog {
+  position: relative;
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  padding: 24px;
+}
+
+.ufm-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 0;
+}
+
+.ufm-header {
+  margin-bottom: 16px;
+}
+
+.ufm-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.ufm-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ufm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ufm-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #344054;
+}
+
+.ufm-input {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  padding: 0 12px;
+}
+
+.ufm-input input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 10px 0;
+  font-size: 14px;
+  background: transparent;
+}
+
+.ufm-input--password .ufm-refresh {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px 8px;
+  color: #475467;
+}
+
+.ufm-dropdown-container {
+  position: relative;
+}
+
+.ufm-dropdown-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.ufm-dropdown-placeholder {
+  color: #98a2b3;
+}
+
+.ufm-dropdown-arrow {
+  transition: transform 0.15s ease;
+}
+
+.ufm-dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.ufm-dropdown-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e4e7ec;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+  overflow: hidden;
+}
+
+.ufm-dropdown-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px;
+  padding: 7px 12px;
+  background: #ecfdf3;
+  border: 1px solid #d0d5dd;
+  border-radius: 18px;
+}
+
+.ufm-dropdown-search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+}
+
+.ufm-dropdown-search__icon {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  color: #475467;
+}
+
+.ufm-dropdown-options {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.ufm-dropdown-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.ufm-dropdown-item:hover,
+.ufm-dropdown-item.selected {
+  background: #f2f4f7;
+}
+
+.ufm-dropdown-empty {
+  padding: 10px 12px;
+  color: #98a2b3;
+  font-size: 14px;
+}
+
+.ufm-new-admin-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid #d0d5dd;
+  border-radius: 24px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  color: #344054;
+}
+
+.ufm-new-admin-toggle:hover {
+  background: #f9fafb;
+}
+
+.ufm-new-admin-toggle__icon {
+  width: 18px;
+  height: 18px;
+}
+
+.ufm-new-admin {
+  border: 1px solid #e4e7ec;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ufm-new-admin__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ufm-new-admin__close {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 2px;
+  line-height: 0;
+}
+
+.ufm-legend {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 0;
+  color: #344054;
+}
+
+.ufm-input--readonly {
+  background: #f2f4f7;
+}
+
+.ufm-input--readonly input {
+  color: #475467;
+  cursor: default;
+}
+
+.ufm-footer {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.ufm-primary {
+  background: #1570ef;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ufm-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

@@ -1,0 +1,143 @@
+/* Theme tokens (override with your app variables if available) */
+:root {
+  --imodal-overlay: rgba(0, 0, 0, 0.6);
+}
+
+.imodal-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--imodal-overlay);
+  display: grid;
+  place-items: center;
+  z-index: 999; /* above app */
+  animation: imodal-fade 120ms ease-out;
+}
+
+.imodal {
+  width: 454px;
+  max-width: calc(100vw - 32px);
+  background: var(--bg-primary);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.12);
+  transform: translateY(8px);
+  animation: imodal-pop 160ms ease-out;
+}
+
+.imodal-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  height: 24px;
+}
+
+.imodal-close {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--txt-neutral-primary);
+  cursor: pointer;
+}
+.imodal-close:focus-visible {
+  outline: 2px solid var(--border-secondary);
+  outline-offset: 2px;
+}
+
+.imodal-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+/* circular info badge with gradient + ring */
+.imodal-badge {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 100px;
+  background: linear-gradient(339.68deg, var(--imodal-badge-grad-a) 5.41%, var(--imodal-badge-grad-b) 117.43%);
+  border: 4px solid var(--border-secondary);
+}
+
+.imodal-title {
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+  font-weight: 500;
+  font-size: 32px;
+  line-height: 40px;
+  letter-spacing: -0.03em;
+  color: var(--txt-neutral-primary);
+  margin: 0;
+  text-align: center;
+}
+
+.imodal-text {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+.imodal-text p {
+  margin: 0;
+  font-weight: 450;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.02em;
+  color: var(--txt-neutral-tertiary);
+  text-align: center;
+}
+
+/* green outline support block */
+.imodal-support {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border-secondary);
+  border-radius: 12px;
+  width: 100%;
+  padding: 8px;
+}
+
+.imodal-support-icon {
+  width: 24px;
+  height: 24px;
+  color: var(--brand-primary);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.imodal-support-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  align-items: center;
+}
+.imodal-support-text .line1,
+.imodal-support-text .line2 {
+  width: 100%;
+  text-align: center;
+  font-weight: 450;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.02em;
+  color: var(--txt-neutral-primary);
+}
+.imodal-support-text .line2 {
+  color: var(--txt-neutral-primary);
+  opacity: 0.9;
+}
+
+/* Animations */
+@keyframes imodal-fade {
+  from { opacity: 0; } to { opacity: 1; }
+}
+@keyframes imodal-pop {
+  from { opacity: 0; transform: translateY(12px) scale(.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}

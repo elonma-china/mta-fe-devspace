@@ -1,0 +1,332 @@
+/* Root container */
+.document-select {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  height: 100%;
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  box-sizing: border-box;
+  flex: 1 1 auto;           /* take remaining space */
+  min-height: 0;            /* allow its child to scroll */
+  align-self: stretch;      /* full width */
+}
+
+.ds-document-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: var(--space-xl);
+}
+
+/* Row */
+.ds-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;      /* checkbox left, rest right */
+  align-items: center;              /* align to the first line (top) */
+  width: 100%;
+  height: 48px;                     /* keep current visual minimum */
+  padding: 0 var(--space-sm);
+  box-sizing: border-box;
+  gap: 8px;
+}
+
+.ds-row:hover {
+  background: var(--bg-neutral-secondary);
+  border-radius: var(--radius-md);
+}
+
+/* Checkbox wrapper */
+.ds-checkwrap {
+  display: flex;
+  align-items: flex-start;              /* top-align with first line */
+  justify-content: center;
+  margin-left: 4px;
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  margin-top: 2px;                      /* tiny nudge to match text cap height */
+}
+
+/* Checkbox visuals */
+.ds-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.ds-checkbox {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.ds-box {
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-xs);
+  border: 1.5px solid var(--border-neutral-secondary);
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.ds-checkbox:checked + .ds-box,
+.ds-checkbox:indeterminate + .ds-box {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+}
+
+.ds-box::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 10px;
+  height: 6px;
+  margin-left: -5px;
+  margin-top: -3px;
+  border-left: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  transform: rotate(-45deg);
+}
+
+.ds-checkbox:checked + .ds-box::after {
+  border-left-color: #fff;
+  border-bottom-color: #fff;
+}
+
+.ds-checkbox:indeterminate + .ds-box::after {
+  width: 10px;
+  height: 2px;
+  left: 50%;
+  top: 50%;
+  margin-left: -5px;
+  margin-top: -1px;
+  background: #fff;
+  transform: none;
+}
+
+/* Right group: filename + menu */
+.ds-rightgroup {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;              /* top-align with first line */
+  justify-content: flex-start;          /* content hugs the checkbox (left) */
+  gap: 8px;
+  flex: 1;
+  min-width: 0;                         /* allow filename to shrink/wrap */
+}
+
+/* Title + filename text */
+.ds-title,
+.ds-filename {
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.02em;
+  font-weight: 500;
+  padding-left: 12px;
+  color: var(--txt-neutral-primary);
+  text-align: left;                     /* hug the checkbox, align with nav rows */
+  margin: 0;
+}
+
+.ds-title {
+  color: var(--txt-neutral-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Story 35: filename + source-unit tag stacked (super-admin view) */
+.ds-namecol {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.ds-unit-tag {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--txt-neutral-tertiary);
+  padding-left: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 1-line clamp for filenames */
+.ds-filename {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  display: block;
+  padding-top: 0;
+  word-break: break-word;
+}
+
+/* 3-dot button */
+.ds-morebtn {
+  display: inline-flex;
+  align-items: flex-start;              /* top-align with first line */
+  justify-content: center;
+  align-self: flex-start;               /* stick to top regardless of filename height */
+  margin-left: auto;                    /* push to the right edge of the row */
+  width: 24px;
+  height: 24px;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  margin-top: 0;                        /* keep tight to first line */
+}
+
+.ds-moreicon {
+  width: 24px;
+  height: 24px;
+  display: block;
+  color: var(--txt-neutral-primary);
+  fill: currentColor;
+}
+
+.ds-row:hover .ds-state {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.ds-morebtn:hover .ds-moreicon {
+  opacity: 0.8;
+}
+
+.ds-row-pending {
+  opacity: 0.8;
+}
+
+/* Story 33: section headers ("Tài liệu của tôi" / "Kho tài liệu") */
+.ds-section-title {
+  font-size: 13px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--txt-neutral-tertiary);
+  padding: 0 var(--space-sm);
+  padding-left: 16px;
+  margin: 10px 0 4px;
+  text-align: left;
+}
+
+/* Story 33: repository folder row (group) */
+.ds-folder-row {
+  /* reuses .ds-row layout; the toggle replaces the right group */
+}
+
+.ds-folder-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0 0 0 12px;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.ds-folder-icon {
+  flex: 0 0 auto;
+  /* Story 100: neutral #262626 to match Figma node 1074-26180 (reverses the
+     story-41 brand teal). The checkbox is the only teal element on selection. */
+  color: var(--txt-neutral-secondary, #262626);
+}
+
+/* Story 98: folder ⋮ sits at the same right column as the doc-row ⋮; folder rows
+   are single-line so centre it vertically (doc rows top-align for wrapping). */
+.ds-folder-more {
+  align-self: center;
+}
+
+.ds-folder-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.02em;
+  font-weight: 500;
+  color: var(--txt-neutral-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Caret: a small triangle that points right (closed) / down (open). */
+.ds-folder-caret {
+  flex: 0 0 auto;
+  margin-left: auto;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 6px solid var(--txt-neutral-tertiary);
+  transition: transform 120ms ease;
+}
+
+.ds-folder-caret.is-open {
+  transform: rotate(90deg);
+}
+
+/* Children of an open folder are indented under the folder name. */
+.ds-folder-children {
+  display: flex;
+  flex-direction: column;
+}
+
+.ds-row-nested {
+  padding-left: calc(var(--space-sm) + 24px);
+}
+
+.ds-spinner {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-top-color: #2f6f5a; /* same tone as your checkbox? tweak as needed */
+  animation: ds-spin 0.6s linear infinite;
+  display: inline-block;
+}
+
+.ds-morebtn-disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+@keyframes ds-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .ds-row {
+    padding: 0;
+  }
+
+  .ds-checkwrap {
+    margin: 0;
+  }
+
+  .document-select {
+    margin-top: 0;
+  }
+
+  .ds-document-list {
+    padding-right: var(--space-md);
+  }
+}

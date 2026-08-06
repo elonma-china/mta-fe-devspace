@@ -1,0 +1,89 @@
+/* src/features/documents/components/viewer/FileOriginalView.css */
+/* Story 23: inline rendering of the original file by kind in the "File gốc" tab. */
+
+.dv-file-doc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--txt-neutral-primary, #1a1a1a);
+  word-break: break-word;
+}
+
+.dv-file-doc img {
+  max-width: 100%;
+  height: auto;
+}
+
+.dv-file-doc table,
+.dv-file-sheet table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+
+.dv-file-doc td,
+.dv-file-doc th,
+.dv-file-sheet td,
+.dv-file-sheet th {
+  border: 1px solid var(--border-neutral-secondary, #e3e3e3);
+  padding: 4px 8px;
+  text-align: left;
+}
+
+.dv-file-sheet {
+  overflow: auto;
+}
+
+.dv-file-md {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--txt-neutral-primary, #1a1a1a);
+  word-break: break-word;
+}
+
+.dv-downloadbtn {
+  margin-top: var(--space-sm, 8px);
+  padding: 8px 16px;
+  border: 1px solid var(--border-brand, #0c6b4f);
+  border-radius: 6px;
+  background: var(--bg-brand, #0c6b4f);
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.dv-downloadbtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Citation highlight (directive review) ─────────────────────────── */
+.fov-cite-host { display: flex; flex-direction: column; min-height: 0; height: 100%; }
+.fov-cite-host > .dv-file-frame { flex: 1; }
+
+.fov-cite-ribbon {
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 8px 12px; margin-bottom: 6px;
+  background: #ffe94d; color: #3a3000;
+  border-radius: 8px; font-size: 13px; line-height: 1.45;
+  animation: fov-cite-fade 0.6s ease-out;
+}
+.fov-cite-ribbon-label { font-weight: 600; white-space: nowrap; }
+.fov-cite-ribbon-quote { flex: 1; }
+.fov-cite-ribbon-close {
+  background: none; border: 0; cursor: pointer;
+  font-size: 13px; color: inherit; padding: 0 2px;
+}
+
+.fov-cite-highlight {
+  background: #ffe94d; color: #3a3000;
+  border-radius: 2px; padding: 0 2px;
+  animation: fov-cite-fade 0.6s ease-out;
+}
+
+@keyframes fov-cite-fade {
+  from { background-color: #fff6b3; }
+  to   { background-color: #ffe94d; }
+}
+
+.dark .fov-cite-ribbon,
+.dark .fov-cite-highlight { background: #b3a125; color: #1c1800; }

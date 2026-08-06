@@ -1,0 +1,129 @@
+/* src/features/admin/pages/AuditLogs.css */
+
+.audit-mgmt {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Story 123: screen title inside the panel, above the toolbar (which already
+   carries a bottom divider) — consistent with the other management screens. */
+.audit-title {
+  margin: 0;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 24px;
+  letter-spacing: -0.02em;
+  color: var(--txt-neutral-primary);
+}
+
+.audit-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: var(--bg-secondary, #f9f9f9);
+  padding-bottom: 16px !important; 
+  /* border-radius: 8px; */
+  border-bottom: 1px solid var(--border-neutral-primary, #e0e0e0);
+  height: auto !important; /* Override fixed height from .user-mgmt .toolbar */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.audit-search-row {
+  display: grid;
+  grid-template-columns: repeat(4, calc(25% - 9px));
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.audit-search-row .audit-filter-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.audit-filter-group {
+  display: grid;
+  grid-template-columns: calc(22% - 9px) calc(22% - 9px) calc(44% - 9px) calc(12% - 9px);
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.audit-filter-input,
+.audit-filter-select,
+.audit-filter-date {
+  padding: 8px 12px;
+  border: 1px solid var(--border-neutral-primary, #e0e0e0);
+  border-radius: 6px;
+  background-color: var(--bg-primary, #ffffff);
+  color: var(--txt-neutral-primary, #333333);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  height: 40px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.audit-filter-input:focus,
+.audit-filter-select:focus,
+.audit-filter-date:focus {
+  border-color: var(--brand-primary, #007bff);
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1);
+}
+
+.date-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.date-range .audit-filter-date {
+  flex: 1;
+  min-width: 0;
+}
+
+.btn-reset {
+  width: 100%;
+  padding: 8px 16px;
+  background-color: transparent;
+  color: var(--txt-neutral-secondary, #666666);
+  border: 1px solid var(--border-neutral-primary, #e0e0e0);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  height: 40px;
+  box-sizing: border-box;
+}
+
+.btn-reset:hover {
+  background-color: var(--bg-neutral-hover, #f0f0f0);
+  color: var(--txt-neutral-primary, #333333);
+}
+
+.badge-action {
+  display: inline-block;
+  padding: 4px 8px;
+  background-color: rgba(0, 123, 255, 0.08);
+  color: var(--brand-primary, #007bff);
+  border: 1px solid rgba(0, 123, 255, 0.15);
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.ip-agent {
+  line-height: 1.4;
+}
+
+.ip-agent small {
+  color: var(--txt-disable, #888888);
+  font-size: 11px;
+}

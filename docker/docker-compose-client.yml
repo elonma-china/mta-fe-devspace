@@ -1,0 +1,238 @@
+# =====================================================================
+#  Staging stack: intramind-client  (đổi tên từ intramind-frontend)
+#  Stack độc lập — project/network/volume riêng, KHÔNG đụng stack v2/pnv.
+#
+#  Dùng:
+#    cd docker
+#    docker compose -f docker-compose-client.yml --env-file .env.client.stg up -d --build
+#
+#  Khác với docker-compose-v2.yml:
+#    - name: intramind-client  -> pin project name (ps sạch, an toàn orphan)
+#    - container_name: intramind-client-*  (frontend = intramind-client)
+#    - network: intramind-client-network
+#    - volume:  trỏ external vào volume data v2 (docker_postgres-data /
+#                docker_mongo-data) -> DÙNG LẠI DATA V2, không mất, không copy
+#    - AI host default trỏ remote staging 100.108.33.98 (SERVICE=5001, INGEST=5002)
+# =====================================================================
+name: intramind-client
+
+services:
+  # Service 1: PostgreSQL Database
+  sql-db:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.psql
+    container_name: intramind-client-sql-db
+    restart: unless-stopped
+    ports:
+      - "${DB_BIND_IP:-127.0.0.1}:${DB_PORT:-5432}:5432"
+    environment:
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
+      - POSTGRES_DB=${DB_NAME:-intramind}
+    volumes:
+      - postgres-data-client:/var/lib/postgresql/data
+    networks:
+      - intramind-client-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-intramind}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Service 2: MongoDB
+  nosql-db:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.mongo
+    container_name: intramind-client-nosql-db
+    restart: unless-stopped
+    ports:
+      - "${DB_BIND_IP:-127.0.0.1}:${MONGO_PORT:-27018}:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER:-mongoadmin}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD:-mongoadmin}
+      - MONGO_INITDB_DATABASE=${MONGO_DB:-intramind}
+    volumes:
+      - mongo-data-client:/data/db
+    networks:
+      - intramind-client-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "--quiet"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Service 2.5: One-shot DB migration runner.
+  # Applies pending db/psql/migrate_NNN.sql files against the existing volume
+  # before the backend starts. Idempotent — exits 0 with nothing to do once all
+  # migrations are applied.
+  db-migrate:
+    image: postgres:15-alpine
+    container_name: intramind-client-migrate
+    restart: "no"
+    environment:
+      - DB_HOST=sql-db
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_NAME=${DB_NAME:-intramind}
+    volumes:
+      - ../db/psql:/migrations:ro
+      - ./migrate.sh:/usr/local/bin/migrate.sh:ro
+    entrypoint: ["sh", "/usr/local/bin/migrate.sh"]
+    depends_on:
+      sql-db:
+        condition: service_healthy
+    networks:
+      - intramind-client-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Service 2.6: One-shot reference-data seeder.
+  # Runs db/psql/seed.py once the schema exists and migrations are applied,
+  # seeding the root unit, its roles, and the super-admin user. Idempotent —
+  # safe to re-run. Reuses the backend image (asyncpg + bcrypt already there).
+  db-seed:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend-fastapi
+    container_name: intramind-client-seed
+    restart: "no"
+    environment:
+      - DB_HOST=sql-db
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_NAME=${DB_NAME:-intramind}
+    volumes:
+      - ../db/psql:/seed:ro
+    command: ["python", "/seed/seed.py"]
+    depends_on:
+      sql-db:
+        condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
+    networks:
+      - intramind-client-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Service 3: Python FastAPI Backend
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend-fastapi
+    container_name: intramind-client-api
+    restart: unless-stopped
+    ports:
+      - "${BIND_IP:-0.0.0.0}:${BACKEND_PORT:-5050}:5050"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=5050
+      - FRONTEND_ORIGIN=${FRONTEND_ORIGIN:-*}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-24h}
+      - JWT_SECRET=${JWT_SECRET}
+      - DB_HOST=sql-db
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_NAME=${DB_NAME:-intramind}
+      - MONGO_HOST=nosql-db
+      - MONGO_PORT=27017
+      - MONGO_USER=${MONGO_USER:-mongoadmin}
+      - MONGO_PASSWORD=${MONGO_PASSWORD:-mongoadmin}
+      - MONGO_DB=${MONGO_DB:-intramind}
+      - AI_SERVICE_HOST=${AI_SERVICE_HOST:-http://100.108.33.98:5001/api/v1}
+      - AI_INGEST_HOST=${AI_INGEST_HOST:-http://100.108.33.98:5002/api/v1}
+      - ZOMBIE_TASK_TIMEOUT_MS=${ZOMBIE_TASK_TIMEOUT_MS:-1800000}
+      - UPLOAD_ALLOWED_EXTENSIONS=${UPLOAD_ALLOWED_EXTENSIONS:-.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.md,.png,.jpg,.jpeg}
+      - LLM_API_KEY=${LLM_API_KEY}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ../backend-fastapi:/app
+    depends_on:
+      sql-db:
+        condition: service_healthy
+      nosql-db:
+        condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
+      db-seed:
+        condition: service_completed_successfully
+    networks:
+      - intramind-client-network
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5050/health')" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Service 4: The React Frontend + Node Server
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    image: xuanphuong/intramind-frontend:v1
+    container_name: intramind-client
+    restart: unless-stopped
+    ports:
+      - "${BIND_IP:-0.0.0.0}:${FRONTEND_PORT:-8001}:3000"
+    environment:
+      - PORT=3000
+      - REACT_APP_DB_HOST=${BACKEND_URL:-http://backend:5050}
+      - REACT_APP_FILE_EXT=${REACT_APP_FILE_EXT:-.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.md,.png,.jpg,.jpeg}
+      - REACT_APP_TOOL_PREFIX=/tools
+      - REACT_APP_LLM_PREFIX=/llm
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - intramind-client-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  intramind-client-network:
+    driver: bridge
+
+volumes:
+  # ĐỒNG BỘ VỚI V2 — KHÔNG mất data.
+  # Trỏ thẳng vào volume data v2 đang dùng (external = phải tồn tại sẵn).
+  # Project name của v2 là `docker` (image build ra tên `docker-sql-db`) -> volume
+  # thật là `docker_postgres-data` / `docker_mongo-data`.
+  # Xác nhận tên Postgres trước khi up:
+  #   docker inspect intramind-frontend-sql-db --format '{{range .Mounts}}{{.Name}}{{end}}'
+  # Nếu Mongo chưa từng chạy thì volume mongo chưa có -> tạo trước khi up:
+  #   docker volume inspect docker_mongo-data >/dev/null 2>&1 || docker volume create docker_mongo-data
+  postgres-data-client:
+    external: true
+    name: docker_postgres-data
+  mongo-data-client:
+    external: true
+    name: docker_mongo-data

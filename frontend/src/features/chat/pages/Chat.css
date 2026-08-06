@@ -1,0 +1,300 @@
+/* src/features/chat/pages/Chat.css */
+
+.chat-body {
+  display: flex;
+  flex: 1;
+  /* Automatically takes all height between Header and Footer */
+  flex-direction: row;
+  align-items: stretch;
+  gap: var(--space-md);
+  width: 100%;
+  /* Story 76: fill the shared MainLayout scroll-area EXACTLY. The old
+     `min-height:100%` + `margin-top:var(--space-md)` made this 100% + ~16px tall,
+     overflowing the `<section overflowY:auto>` wrapper → a page-level scrollbar on
+     the far right. Use height:100% + padding-top instead — with the global
+     box-sizing:border-box the padding sits INSIDE the 100%, so the header↔panels
+     gap is kept WITHOUT adding height (no overflow, panels still scroll internally). */
+  height: 100%;
+  padding-top: var(--space-md);
+}
+
+/* Base Panel Styles */
+.document-panel,
+.conversation-panel,
+.analysis-panel {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  background: var(--bg-secondary);
+  border-radius: var(--card-radius);
+  /* Story 125: borderless — box-shadow ONLY, matching .um-sidebar/.user-mgmt.
+     Removed the story-59 border so Chat cards no longer look "raised" (nổi). */
+  box-shadow: var(--card-shadow);
+  min-height: 0;
+  /* Ensures the panel itself doesn't grow past the container */
+  overflow: hidden;
+  /* Contains the divider and panels */
+}
+
+/* Specific Panel Widths */
+.document-panel {
+  /* Story 119: shared shell left-column width (matches header logo zone + admin
+     sidebar) so the panel seam lines up when switching Chat ↔ admin. */
+  flex: 0 0 var(--sidebar-width);
+}
+
+.analysis-panel {
+  flex: 0 0 var(--panel-analysis-width);
+  transition: flex-basis 200ms ease;
+}
+
+/* If Analysis panel contains the large mindmap/info panel */
+.analysis-panel:has(.info-panel) {
+  flex-basis: var(--panel-analysis-expanded-width);
+}
+
+.conversation-panel {
+  flex: 1;
+  /* Middle column takes all remaining space */
+  min-width: 0;
+  /* Story 125: borderless — box-shadow only (border removed, reverses story 59). */
+  background: var(--bg-secondary);
+  border-radius: var(--card-radius);
+}
+
+/* Shared Header Logic */
+.panel-header {
+  flex: 0 0 76px;
+  /* Lock height without calc */
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header.desktop-only {
+  /* display: none; */
+  /* Removed from global to allow display on desktop */
+}
+
+.panel-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* Better alignment for dropdowns/icons */
+  padding: var(--space-lg);
+  height: 100%;
+}
+
+.panel-title {
+  /* Figma "Quản lý tài liệu": H3/medium 20/28, -0.03em letter-spacing */
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  /* Story 127: point at the shared title tokens (values identical → Chat, the
+     standard, renders unchanged) so `.um-sidebar__title` can match this 1 source. */
+  font-family: var(--title-font-family);
+  font-style: normal;
+  font-weight: 500;
+  font-size: var(--font-size-h3);
+  line-height: 1.4;
+  /* 28px / 20px */
+  letter-spacing: -0.03em;
+  color: var(--txt-neutral-primary);
+  /* or var(--txt-neutral-primary) */
+  font-feature-settings: var(--title-font-feature-settings);
+}
+
+.panel-action {
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  width: 64px;
+  height: 24px;
+  flex: 0 0 24px;
+}
+
+.panel-action svg {
+  width: 24px;
+  height: 24px;
+  color: var(--brand-primary);
+  cursor: pointer;
+}
+
+.panel-action svg:hover {
+  background: rgba(127, 127, 127, 0.08);
+  border-radius: 10px;
+}
+
+.mobile-actions {
+  display: none;
+}
+
+/* Divider line (Vector 1) */
+.panel-divider {
+  width: 100%;
+  border-top: 1px solid var(--border-neutral-primary);
+}
+
+/* Panel Body - This is the scrollable area */
+.panel-body {
+  flex: 1;
+  padding: var(--space-md);
+  gap: var(--space-sm);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  /* Scroll only the body, not the whole panel */
+}
+
+/* Each navigation row */
+.panel-nav {
+  display: flex;
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+  gap: var(--space-md);
+  height: 40px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.panel-nav:hover {
+  background: var(--bg-neutral-secondary);
+}
+
+/* Icon inside nav item */
+.panel-nav-icon {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--txt-neutral-primary);
+}
+
+/* Label inside nav item */
+.panel-nav-label {
+  font-family: 'Inter', sans-serif;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.02em;
+  color: var(--txt-neutral-primary);
+}
+
+/* Mobile Tabs */
+.chat-mobile-tabs {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .chat-body {
+    flex-direction: column;
+    margin-top: 0;
+    gap: 0;
+  }
+
+  .chat-mobile-tabs {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    padding: 0;
+    margin-top: 0;
+    flex: 0 0 47px;
+    /* Frame 10171 Tab height */
+    border-bottom: 1px solid var(--border-neutral-primary);
+    width: 100%;
+  }
+
+  .chat-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 450;
+    color: var(--txt-neutral-primary);
+    cursor: pointer;
+    position: relative;
+  }
+
+  .chat-tab .tab-indicator {
+    display: none;
+    position: absolute;
+    height: 3px;
+    left: 16px;
+    right: 16px;
+    bottom: 0px;
+    background: var(--brand-primary);
+    border-radius: 100px 100px 0px 0px;
+  }
+
+  .chat-tab.active {
+    color: var(--brand-primary);
+  }
+
+  .chat-tab.active .tab-indicator {
+    display: block;
+  }
+
+  .document-panel,
+  .conversation-panel,
+  .analysis-panel {
+    border-radius: 0;
+    flex: 1 !important;
+    /* Ensure they take remaining height */
+    width: 100% !important;
+    /* Ensure they take full width */
+    max-width: 100% !important;
+  }
+
+  .document-panel.mobile-hidden,
+  .conversation-panel.mobile-hidden,
+  .analysis-panel.mobile-hidden {
+    display: none !important;
+  }
+
+  .panel-header.desktop-only {
+    display: none !important;
+  }
+
+  .desktop-actions {
+    display: none !important;
+  }
+
+  .mobile-actions {
+    display: block !important;
+  }
+
+  .panel-action {
+    width: 24px;
+  }
+
+  .panel-body {
+    padding: 0;
+  }
+
+  .panel-nav {
+    padding: 0;
+    gap: 0;
+  }
+
+  .panel-nav-icon {
+    margin-right: var(--space-md);
+  }
+
+  .panel-header-row {
+    padding: 0;
+  }
+
+  .panel-header {
+    flex: 0 0 72px;
+  }
+}

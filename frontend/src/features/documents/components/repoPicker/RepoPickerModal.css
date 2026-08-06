@@ -1,0 +1,186 @@
+/* src/features/documents/components/repoPicker/RepoPickerModal.css */
+
+.repo-picker-shell {
+  /* Story 95: widen toward the Figma 841:48818 proportions (node ~800px). */
+  width: 760px;
+  max-width: 95vw;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.rp-header {
+  /* Story 97: no divider under the title — Figma 841:48818 flows the header
+     straight into the search box (the underline rule was removed). */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rp-header .modal-title {
+  /* Story 95: inherit the global 24px .modal-title (was forced to 18px). Keep
+     the single-line ellipsis for long unit names. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: var(--space-md, 16px);
+}
+
+.rp-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--txt-neutral-secondary, #666);
+  flex-shrink: 0;
+}
+
+.rp-close:hover {
+  background: var(--bg-neutral-hover, rgba(0, 0, 0, 0.05));
+}
+
+/* Story 95: Figma search bar — full-width pill, light brand-tint background,
+   magnifier icon on the right. */
+.rp-search {
+  margin-top: var(--space-md, 16px);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm, 8px);
+  background: var(--bg-brand-subtle, #eaf6f1);
+  border-radius: 999px;
+  padding: 12px 18px;
+}
+
+.rp-search input {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 16px;
+  color: var(--txt-neutral-primary, #1c1c1c);
+}
+
+.rp-search-icon {
+  flex: 0 0 auto;
+  color: var(--txt-neutral-tertiary, #888);
+}
+
+.rp-body {
+  flex: 1;
+  min-height: 200px;
+  margin-top: var(--space-md, 16px);
+  overflow: hidden;
+  display: flex;
+}
+
+.rp-columns {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  /* Story 95: gap between the two cards (Figma). */
+  gap: var(--space-lg, 20px);
+}
+
+/* Story 95: each column is a bordered, rounded card (replaces the single
+   border-right divider on the left column). */
+.rp-col {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-sm, 10px);
+  border: 1px solid var(--border-neutral-secondary, #e3e3e3);
+  border-radius: 16px;
+}
+
+.rp-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  font-size: 16px;
+  border-radius: 10px;
+}
+
+.rp-row input[type="checkbox"] {
+  flex-shrink: 0;
+  /* Story 74: tick + indeterminate dùng màu brand (khớp design), thay màu mặc
+     định xanh dương của trình duyệt. */
+  accent-color: var(--brand-primary, #226355);
+  /* Story 95: larger checkbox to match the design. */
+  width: 18px;
+  height: 18px;
+}
+
+.rp-master {
+  font-weight: 600;
+}
+
+.rp-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Story 95: the folder glyph was removed (Figma rows are text + chevron only),
+   so the .rp-folder-icon rule is gone. */
+
+.rp-folder.is-open {
+  /* Story 95: open folder uses the light brand tint (was neutral grey). */
+  background: var(--bg-brand-subtle, #eaf6f1);
+}
+
+.rp-folder-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm, 8px);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  text-align: left;
+  min-width: 0;
+}
+
+.rp-chevron {
+  color: var(--txt-neutral-tertiary, #888);
+  flex-shrink: 0;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.rp-hint {
+  font-size: 13px;
+  color: var(--txt-neutral-tertiary, #888);
+  padding: var(--space-md, 16px);
+  text-align: center;
+}
+
+.rp-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm, 8px);
+  font-size: 14px;
+  color: var(--txt-neutral-secondary, #666);
+}
+
+.rp-error {
+  color: var(--status-error-text, #d93025);
+}
+
+.rp-actions {
+  margin-top: var(--space-md, 16px);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm, 8px);
+}

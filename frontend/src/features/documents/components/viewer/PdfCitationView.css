@@ -1,0 +1,23 @@
+/* PdfCitationView — PDF.js citation viewer (spec 2026-07-17). */
+
+.pcv-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #525659; /* match the native PDF viewer chrome */
+}
+
+.pcv-page {
+  margin: 8px auto;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+/* The pdfjs text layer draws TRANSPARENT text over the canvas; the mark's
+   background must be translucent so the rendered glyphs stay readable. */
+.pcv-page .react-pdf__Page__textContent mark.fov-cite-highlight {
+  background: rgba(255, 213, 0, 0.45);
+  color: transparent;
+  border-radius: 2px;
+}

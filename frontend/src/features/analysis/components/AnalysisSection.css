@@ -1,0 +1,168 @@
+/* ===== Root container ===== */
+.analysis-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  width: 100%;
+  padding: 0 var(--space-sm);
+  box-sizing: border-box;
+
+  /* allow internal scroller to size correctly */
+  height: 100%;
+  min-height: 0;
+
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/* ===== Feature grid ===== */
+.ap-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-md);
+  width: 100%;
+  flex: 0 0 auto;
+}
+
+/* Feature card (clickable) */
+.ap-feature {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-md);
+  height: 96px;
+  padding: var(--space-lg);
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--bg-tertiary);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.06s ease;
+}
+
+.ap-feature .ap-icon { position: relative; overflow: hidden; width: 24px; height: 24px; }
+.ap-feature .ap-icon svg { width: 24px; height: 24px; color: var(--brand-primary); }
+
+.ap-feature .ap-title {
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--brand-primary);
+}
+
+/* wipe animation overlay on click (triggered via .is-animating on .ap-feature) */
+.ap-feature .ap-icon::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, currentColor 50%, transparent 100%);
+  opacity: 0.18;
+  transform: translateX(-120%);
+  pointer-events: none;
+}
+.ap-feature.is-animating .ap-icon::after { animation: ap-icon-wipe 0.6s ease-out forwards; }
+@keyframes ap-icon-wipe { from { transform: translateX(-120%);} to { transform: translateX(120%);} }
+@media (prefers-reduced-motion: reduce) {
+  .ap-feature.is-animating .ap-icon::after { animation: none; transform: none; opacity: 0.12; }
+}
+
+/* ===== Scrollable list ===== */
+.ap-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  width: 100%;
+  max-width: 328px;
+
+  /* make this the scroller */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: var(--space-md);
+  padding-bottom: var(--space-xl);
+}
+
+/* List item */
+.ap-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  width: 100%;
+  min-height: 42px;
+  border-radius: var(--radius-md);
+}
+
+.ap-item-main {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ap-item .ap-icon { width: 24px; height: 24px; flex: 0 0 auto; }
+.ap-item .ap-icon svg { width: 24px; height: 24px; color: var(--brand-primary); }
+
+.ap-item-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ap-item-title {
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+  color: var(--txt-neutral-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ap-item-meta {
+  font-size: 12px;
+  color: var(--txt-neutral-tertiary);
+}
+
+.ap-item.is-pending { opacity: 0.85; }
+
+.ap-item-delete {
+  width: 24px; 
+  height: 24px;
+  flex: 0 0 auto;
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center;
+  border: 0; 
+  background: transparent; 
+  padding: 0; 
+  cursor: pointer;
+  color: var(--txt-neutral-tertiary);
+}
+.ap-item-delete:hover { color: var(--txt-neutral-secondary); }
+.ap-item-delete svg { width: 24px; height: 24px; }
+
+/* spinner used while generating */
+.ap-loading-spinner {
+  width: 20px; height: 20px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: ap-spin 0.9s linear infinite;
+}
+@keyframes ap-spin { to { transform: rotate(360deg); } }
+
+/* clickable state only on the main content area */
+.ap-item { cursor: pointer; }
+.ap-item:hover { background: rgba(127,127,127,0.08); border-radius: 10px; }
+
+
+@media (max-width: 768px) {
+  .analysis-section {
+    padding: 0;
+  }
+
+  .ap-list {
+    max-width: none;
+    width: 100%;
+  }
+}

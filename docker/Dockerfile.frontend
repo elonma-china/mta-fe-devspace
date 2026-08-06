@@ -1,0 +1,52 @@
+# Dockerfile.frontend — SPA build + Node proxy (:3000), image intramind/fe.
+# Build context là GỐC REPO (compose đặt context: ..).
+#
+# Stage 1 build CRA ra static; stage 2 chỉ mang frontend-server (express +
+# http-proxy-middleware) + build/. npm ci thay npm install: tôn trọng
+# package-lock (CI dùng npm ci cho frontend — giữ cùng resolver).
+FROM node:22-alpine AS builder
+
+WORKDIR /app/frontend
+
+COPY frontend/package*.json ./
+RUN npm ci
+
+COPY frontend/ .
+# SECURITY: .dockerignore đã loại .env; rm lại cho chắc — secret không được
+# lọt vào bundle JS.
+RUN rm -f .env
+
+ARG GENERATE_SOURCEMAP=false
+ENV GENERATE_SOURCEMAP=$GENERATE_SOURCEMAP
+
+RUN npm run build
+
+# Stage 2: runner
+FROM node:22-alpine AS runner
+
+LABEL org.opencontainers.image.title="intramind-fe" \
+      org.opencontainers.image.description="IntraMind SPA + Node proxy — serve build CRA, proxy /db /llm /tools sang gateway :5050"
+
+WORKDIR /app
+ENV NODE_ENV=production
+
+COPY frontend-server/package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+
+COPY frontend-server/ .
+COPY --from=builder /app/frontend/build ./build
+COPY docker/generate-env.sh /usr/local/bin/generate-env.sh
+# node (uid 1000) có sẵn trong image; generate-env.sh ghi build/env-config.js
+# lúc runtime nên /app phải thuộc node.
+RUN chmod +x /usr/local/bin/generate-env.sh && chown -R node:node /app
+USER node
+
+ENV PORT=3000
+EXPOSE 3000
+
+# node:22-alpine không có curl — wget busybox là đủ cho GET /.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=5 \
+  CMD wget -qO- http://localhost:3000/ >/dev/null || exit 1
+
+ENTRYPOINT ["/usr/local/bin/generate-env.sh"]
+CMD ["node", "server.js"]

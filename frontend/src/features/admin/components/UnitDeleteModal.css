@@ -1,0 +1,124 @@
+/* src/features/admin/components/UnitDeleteModal.css */
+
+.udm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.udm-dialog {
+  position: relative;
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  padding: 24px;
+}
+
+.udm-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 0;
+}
+
+/* Header row: danger badge (Figma 841-48732) + title, vertically centered. */
+.udm-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 12px;
+}
+
+.udm-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.udm-message {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #475467;
+  margin: 0 0 16px;
+}
+
+.udm-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 14px;
+  color: #344054;
+  cursor: pointer;
+}
+
+.udm-check input {
+  margin-top: 2px;
+}
+
+.udm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.udm-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #344054;
+}
+
+.udm-select {
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  background: #fff;
+  outline: none;
+}
+
+.udm-actions {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.udm-cancel {
+  background: #fff;
+  color: #344054;
+  border: 1px solid #d0d5dd;
+  border-radius: 999px;
+  padding: 10px 28px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.udm-confirm {
+  background: #1c5b4c;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 28px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.udm-cancel:disabled,
+.udm-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

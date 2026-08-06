@@ -1,0 +1,44 @@
+/* src/app/App.css */
+#app-body {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    /* Lock to viewport height */
+    padding: var(--space-md);
+    background: var(--bg-primary);
+    box-sizing: border-box;
+}
+
+.main-page {
+    display: flex;
+    flex: 1;
+    /* This pushes the footer down and takes all remaining space */
+    flex-direction: column;
+    min-height: 0;
+    /* Crucial: allows children to shrink/scroll */
+    width: 100%;
+}
+
+/* Common utility for header/actions area */
+.layout-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-xl);
+    min-height: var(--header-height);
+}
+
+@media (max-width: 768px) {
+    :root {
+        --main-padding: 16px;
+    }
+
+    #app-body {
+        padding: 0;
+        background: var(--bg-secondary);
+    }
+
+    .main-page {
+        padding: 12px;
+    }
+}

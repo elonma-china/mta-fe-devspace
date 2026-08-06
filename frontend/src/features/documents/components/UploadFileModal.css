@@ -1,0 +1,241 @@
+/* src/features/documents/components/UploadFileModal.css */
+
+.ufm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 20, 0.32);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+/* Modal container */
+/* 800x404, centered, white, shadow, r=24, padding=24, gap=24 */
+.ufm-modal {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  gap: 24px;
+  position: relative;
+
+  /* Upgraded to fill space better on desktop while remaining responsive */
+  width: 100%;
+  max-width: 800px;
+  min-height: auto;
+
+  background: var(--bg-neutral-primary);
+  box-shadow: 0px 16px 44px rgba(0, 0, 0, 0.11);
+  border-radius: var(--radius-xl);
+  outline: none;
+}
+
+/* Close button - absolute 40x40 at top-right 12px */
+.ufm-close-btn {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.ufm-close-btn-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px;
+
+  width: 40px;
+  min-width: 40px;
+  max-width: 40px;
+  height: 40px;
+  min-height: 40px;
+  max-height: 40px;
+
+  border-radius: 1000px;
+  color: var(--txt-neutral-primary);
+}
+
+/* Header (Primitives / Dialog Header) */
+.ufm-header {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 0 24px 0 0;
+  gap: 16px;
+
+  width: 100%;
+  height: 32px;
+  z-index: 1;
+}
+
+.ufm-title {
+  flex: 1;
+  margin: 0;
+  width: 100%;
+  height: 32px;
+
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-style: Semi Bold;
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 32px;
+  /* 133% */
+  letter-spacing: -0.03em;
+
+  color: var(--txt-neutral-primary);
+}
+
+.ufm-close-btn[disabled] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ===================== */
+/* Footer actions */
+/* ===================== */
+
+.ufm-actions {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 0;
+  gap: 16px;
+  width: 100%;
+  height: 40px;
+}
+
+/* Base button reset + shared styles */
+.ufm-btn {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+
+  /* keep height in sync with Figma */
+  height: 40px;
+
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-style: Regular;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  /* 143% */
+  letter-spacing: 0.1px;
+
+  border-radius: 100px;
+}
+
+/* Inner content wrapper (the "Content" frame in Figma) */
+.ufm-btn-content {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  min-width: 81px;
+  /* matches the smaller button width */
+  height: 40px;
+  border-radius: 100px;
+}
+
+/* State-layer (padding + icon + label row) */
+.ufm-btn-state {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 16px;
+  gap: 8px;
+  width: 100%;
+  height: 40px;
+}
+
+/* Icon placeholder (hidden by default, matches Figma "display: none") */
+.ufm-btn-icon {
+  display: none;
+  width: 20px;
+  height: 20px;
+}
+
+/* Label */
+.ufm-btn-label {
+  display: flex;
+  align-items: center;
+  height: 20px;
+  white-space: nowrap;
+}
+
+/* Outline button (Button - outline) */
+.ufm-btn-outline .ufm-btn-content-outline {
+  border: 1px solid var(--border-neutral-secondary);
+  border-radius: 100px;
+}
+
+.ufm-btn-outline {
+  color: var(--txt-neutral-primary);
+}
+
+/* Filled button (Button) */
+.ufm-btn-primary .ufm-btn-content-primary {
+  background: var(--brand-primary);
+  border-radius: 100px;
+}
+
+.ufm-btn-primary {
+  color: var(--bg-primary);
+}
+
+.ufm-btn:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+/* ===================== */
+/* Responsive Overrides  */
+/* ===================== */
+@media (max-width: 768px) {
+  .ufm-backdrop {
+    align-items: flex-end;
+    /* Bottom sheet align */
+  }
+
+  .ufm-modal {
+    padding: 16px;
+    gap: 24px;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    max-width: 100%;
+    margin-bottom: 0;
+    height: auto;
+  }
+
+  .ufm-close-btn {
+    right: 12px;
+    top: 12px;
+  }
+
+  .ufm-header {
+    height: 24px;
+  }
+
+  .ufm-title {
+    font-size: 18px;
+    /* H4/semibold */
+    line-height: 24px;
+    height: 24px;
+  }
+}

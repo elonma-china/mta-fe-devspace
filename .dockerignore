@@ -1,0 +1,48 @@
+# .dockerignore — build context là GỐC REPO (compose: context: ..). Cùng khung
+# với mta-be/ai/serving; thêm phần Node vì repo này có frontend.
+# QUAN TRỌNG NHẤT: node_modules — không loại thì context phình hàng trăm MB và
+# npm ci trong image mất tác dụng.
+
+# VCS / meta
+.git
+.gitignore
+.gitattributes
+.github
+.claude
+.serena
+.nodeterm
+
+# Python
+**/__pycache__/
+*.pyc
+*.pyo
+**/.pytest_cache/
+*.egg-info/
+.venv/
+venv/
+
+# Node — npm ci chạy TRONG image, context không được mang node_modules/build cũ
+**/node_modules/
+frontend/build/
+frontend/coverage/
+
+# Test / docs — image không chở test (theo be/ai)
+backend-fastapi/tests/
+backend-fastapi/requirements-dev.txt
+frontend/src/**/__tests__/
+README.md
+LICENSE
+CLAUDE.md
+ingest_openapi.json
+
+# Env — KHÔNG BAO GIỜ để .env lọt vào context; .env.example được phép
+.env
+**/.env
+**/.env.*
+!docker/.env.example
+
+# Bundle / log / rác
+dist/
+*.log
+.DS_Store
+docker/*.bak

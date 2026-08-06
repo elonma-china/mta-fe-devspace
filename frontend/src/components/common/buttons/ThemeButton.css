@@ -1,0 +1,58 @@
+/* src/components/ThemeButton.css */
+
+/* sizes from your Figma */
+.theme-btn {
+  box-sizing: border-box;
+  width: 96px;
+  height: 40px;
+  padding: 4px 8px;               /* 8px to sit icons nicely */
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* sun left, moon right */
+  gap: 24px;
+
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-neutral-primary);
+  border-radius: 100px;
+  cursor: pointer;
+}
+
+.theme-btn:focus-visible {
+  outline: 2px solid var(--border-secondary);
+  outline-offset: 2px;
+}
+
+/* just the two icons on the track */
+.theme-icons {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* keep them fixed in place */
+  pointer-events: none;           /* click anywhere toggles */
+}
+
+.theme-icons .icon {
+  width: 24px;          /* default for moon */
+  height: 24px;
+  display: grid;
+  place-items: center;
+  line-height: 0;
+}
+
+/* SUN is a 32×32 asset -> give it a 32×32 box */
+.theme-icons .sun {
+  width: 32px;
+  height: 32px;
+}
+
+/* make SVGs fill their boxes so they center perfectly */
+.theme-icons .icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.theme-btn .sun { color: var(--bg-secondary); } /* keep your colors */
+
+/* hide the old moving thumb if it still exists in your JSX */
+.theme-thumb { display: none !important; }

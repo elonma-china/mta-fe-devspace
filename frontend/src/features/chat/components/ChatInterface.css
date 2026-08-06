@@ -1,0 +1,351 @@
+/* =========================================
+   1. MAIN LAYOUT & FRAME
+   ========================================= */
+.ci-frame {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: var(--space-lg);
+  gap: var(--space-md);
+  width: 100%;
+  max-width: 1091px;
+  /* I'll keep this as is for now or move to variable if needed */
+  height: calc(100vh - 4.375 * var(--header-height));
+  /* Approx adjustment */
+  box-sizing: border-box;
+  margin: 0 auto;
+
+  /* Centralize default font */
+  font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.ci-chat-response {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding: 0;
+  gap: 16px;
+  width: 100%;
+  max-width: 1059px;
+  height: 100%;
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  overflow: auto;
+  align-self: stretch;
+}
+
+.ci-chat-response .ufs-dropzone {
+  height: 100%;
+  border: none;
+}
+
+/* =========================================
+   2. ANSWER SECTION (Titles & Text)
+   ========================================= */
+.ci-answer-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  gap: 10px;
+  width: fit-content;
+  background: var(--bg-primary);
+  border-radius: 16px 16px 0 16px;
+  margin-left: 48px;
+}
+
+.ci-answer-title-text {
+  color: var(--txt-neutral-primary);
+  font-weight: 500;
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+}
+
+.ci-answer-block {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+  isolation: isolate;
+  width: 100%;
+  max-width: 1059px;
+  align-self: stretch;
+}
+
+.ci-answer-text {
+  width: 100%;
+  max-width: 1059px;
+  margin: 0 12px;
+  color: var(--txt-neutral-primary);
+  font-weight: 500;
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+  z-index: 0;
+}
+
+/* =========================================
+   3. MARKDOWN CONTENT (Tables & Code)
+   ========================================= */
+
+/* Code Blocks */
+.markdown-body pre {
+  overflow-x: auto;
+  border-radius: 8px;
+}
+
+/* --- NEW: Table Styles --- */
+.ci-answer-text table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  display: block;
+  /* Enables scroll for wide tables */
+  overflow-x: auto;
+  border-spacing: 0;
+}
+
+.ci-answer-text th,
+.ci-answer-text td {
+  border: 1px solid var(--border-neutral-secondary);
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.ci-answer-text th {
+  background-color: var(--bg-tertiary);
+  font-weight: 600;
+  color: var(--txt-neutral-primary);
+}
+
+/* =========================================
+   4. ANSWER TOOLS (Copy, Stop)
+   ========================================= */
+.ci-answer-tools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  width: 100%;
+  height: 36px;
+  z-index: 2;
+}
+
+.ci-tool-copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: auto;
+  height: 36px;
+  padding: 0 6px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.ci-tool-copy:hover {
+  background: rgba(127, 127, 127, 0.08);
+}
+
+.ci-stop-btn {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 125px;
+  height: 40px;
+}
+
+/* =========================================
+   5. LOADING STATE
+   ========================================= */
+.ci-loading-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 1059px;
+  height: 386px;
+}
+
+.ci-spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid var(--border-neutral-secondary);
+  border-top-color: var(--brand-primary);
+  animation: ci-spin 1s linear infinite;
+}
+
+@keyframes ci-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ci-loading-caption {
+  width: 100%;
+  text-align: center;
+  color: var(--txt-disable);
+  font-weight: 450;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.ci-outline-btn {
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.ci-outline-state {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 70px;
+  height: 30px;
+  border: 1px solid var(--border-neutral-secondary);
+  border-radius: 100px;
+  padding: 10px 16px;
+  gap: 8px;
+  background: var(--bg-tertiary);
+}
+
+.ci-outline-label {
+  width: 50px;
+  height: 20px;
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 18px;
+  display: flex;
+  align-items: center;
+  letter-spacing: 0.1px;
+  color: var(--txt-neutral-primary);
+}
+
+/* =========================================
+   6. INPUT AREA
+   ========================================= */
+/* Story 134: hint shown when the user must select a document before asking. */
+.ci-select-hint {
+  width: 100%;
+  max-width: 1059px;
+  margin: 0 auto 8px;
+  padding: 0 16px;
+  font-size: 13px;
+  color: var(--txt-neutral-tertiary);
+  text-align: center;
+}
+
+.ci-input-frame {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  gap: 12px;
+  width: 100%;
+  max-width: 1059px;
+  min-height: 72px;
+  border: 1px solid var(--border-secondary);
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.ci-input-frame.is-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.ci-input {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: 975px;
+  min-height: 24px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--txt-neutral-tertiary);
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.4;
+  letter-spacing: -0.02em;
+  resize: none;
+  /* Story 114: default off so the native scrollbar (and its ▲▼ arrow buttons)
+     never shows while content fits; resizeTextarea() flips this to `auto` only
+     once content exceeds the max height. */
+  overflow-y: hidden;
+  white-space: pre-wrap;
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif !important;
+  /* Firefox: thin bar, no arrow buttons by design. */
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-neutral-secondary) transparent;
+}
+
+/* Story 114 — Chromium/WebKit: thin scrollbar WITHOUT the native up/down arrow
+   buttons that were showing on the chat input. */
+.ci-input::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ci-input::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.ci-input::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ci-input::-webkit-scrollbar-thumb {
+  background: var(--border-neutral-secondary);
+  border-radius: 3px;
+}
+
+.ci-send {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 100px;
+  background: var(--bg-tertiary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.ci-send-icon {
+  width: 24px;
+  height: 24px;
+  fill: var(--brand-primary);
+}
+
+/* =========================================
+   7. RESPONSIVE
+   ========================================= */
+@media (max-width: 768px) {
+
+  .ci-frame {
+    padding: var(--space-xs);
+  }
+
+
+}

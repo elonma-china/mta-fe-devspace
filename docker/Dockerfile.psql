@@ -1,0 +1,11 @@
+# Dockerfile.psql — Postgres của tier FE, image intramind/fe-sql.
+# Chỉ nướng init.sql (chạy MỘT lần khi volume rỗng); schema về sau đi qua
+# db-migrate (db/psql/migrate_NNN.sql), không sửa file này.
+FROM postgres:15-alpine
+
+LABEL org.opencontainers.image.title="intramind-fe-sql" \
+      org.opencontainers.image.description="Postgres cua tier FE (users/RBAC/units/audit) + init.sql seed lan dau"
+
+COPY db/psql/init.sql /docker-entrypoint-initdb.d/01-init.sql
+
+EXPOSE 5432

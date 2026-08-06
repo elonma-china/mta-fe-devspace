@@ -1,0 +1,308 @@
+# docker-compose-v2.yml — tier FE (mta-fe-intramind): SPA + Node proxy +
+# gateway/BFF backend-fastapi + Postgres (RBAC/users/audit) + Mongo (nội dung
+# tin nhắn chat). Đây là file mà up-all.sh của mta-infrastructure-intramind
+# dựng cuối cùng: `cd docker && docker compose -p intramind-fe -f
+# docker-compose-v2.yml up -d`, gate bằng GET :5050/health — TÊN FILE VÀ VỊ
+# TRÍ KHÔNG ĐƯỢC ĐỔI nếu chưa sửa up-all.sh.
+#
+# Quy ước chung của workspace (theo mta-be/ai/serving, 2026-07-30):
+#   - `image:` đứng CẠNH `build:` — bắt buộc cho đường air-gap: bundle chỉ
+#     `docker save` các tag khai ở đây; thiếu `image:` compose tự đặt tên
+#     <project>-<service> và máy đích sẽ đòi build lại (chết vì không có mạng).
+#   - container_name = ${CONTAINER_PREFIX:-intramind-}fe-<vai trò>.
+#   - volume có `name:` với tiền tố ${VOLUME_PREFIX:-intramind_}.
+#   - cổng host luôn qua biến (stack thử chạy song song bằng PORT_OFFSET).
+#   - healthcheck kiểu `curl -sf …/health || exit 1` cho mọi service dài hạn.
+#
+# Hai mạng, có chủ đích:
+#   - fe_internal: bridge riêng của tier — Postgres/Mongo KHÔNG ai ngoài tier
+#     này được chạm (FE sở hữu datastore của nó, xem CLAUDE.md workspace).
+#   - intramind_net (external, chủ sở hữu là repo infra): chỉ `frontend` và
+#     `backend` tham gia. `frontend` phải có mặt vì nginx của tier infra proxy
+#     `location /` → http://frontend:3000. `backend` phải có mặt để gọi thẳng
+#     ai-api:5001 / be-api:5002 bằng DNS thay vì host.docker.internal.
+#     Chạy FE một mình: deploy/02-up.sh tự `docker network create intramind_net`.
+#
+# Khác quy ước chung (có chủ đích, đừng "sửa" lại):
+#   - Không dùng `env_file:` — gateway đọc env phẳng, và các biến host-side
+#     (FRONTEND_PORT, DB_PORT=cổng publish) trùng tên biến in-container; đổ cả
+#     .env vào container là mời lỗi khó hiểu. Mapping tường minh dưới đây là
+#     hợp đồng env của từng container.
+#   - `depends_on` được dùng — hợp lệ vì toàn bộ chuỗi (sql-db → db-migrate →
+#     db-seed → backend → frontend) nằm TRONG một project; quy ước "không
+#     depends_on" chỉ áp cho phụ thuộc chéo tier.
+#   - Không có khối `logging:` per-service như bản cũ — các tier khác giao
+#     log-rotation cho daemon.json; cấu hình ở đó, một chỗ cho cả host.
+
+services:
+  # ── Postgres: users / RBAC / units / audit ────────────────────────────────
+  sql-db:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.psql
+    image: ${IM_REGISTRY:-intramind}/fe-sql:${IM_TAG:-devops}
+    container_name: ${CONTAINER_PREFIX:-intramind-}fe-sql-db
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    # Postgres mặc định shared_buffers=128MB nhưng work_mem x max_connections
+    # mới là phần không chặn. FE chỉ giữ user/RBAC/unit/audit — vài chục MB.
+    command:
+      - postgres
+      - -c
+      - shared_buffers=${FE_PG_SHARED_BUFFERS:-128MB}
+      - -c
+      - max_connections=${FE_PG_MAX_CONNECTIONS:-50}
+    environment:
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
+      - POSTGRES_DB=${DB_NAME:-intramind}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          memory: ${FE_PG_MEM_LIMIT:-1G}
+    networks:
+      - fe_internal
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-intramind}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Mongo: nội dung tin nhắn chat ─────────────────────────────────────────
+  nosql-db:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.mongo
+    image: ${IM_REGISTRY:-intramind}/fe-nosql:${IM_TAG:-devops}
+    container_name: ${CONTAINER_PREFIX:-intramind-}fe-nosql-db
+    restart: unless-stopped
+    ports:
+      # FE_MONGO_PORT, không phải MONGO_PORT, và KHÔNG phải 27017: mongo của
+      # tier infra đã publish ${MONGO_PORT:-27017}:27017 trên cùng host — dưới
+      # up-all.sh hai tier giành nhau 27017 và tier fe không bind được. Hai DB
+      # không liên quan nhau (BE/AI → mongo của infra qua intramind_net;
+      # backend-fastapi → nosql-db:27017 qua fe_internal), chỉ cổng publish
+      # phía host phải tránh nhau.
+      - "${FE_MONGO_PORT:-27018}:27017"
+    # WiredTiger mặc định đòi ~50% của (RAM − 1 GB); trên máy 62 GB mà cả
+    # mongo này lẫn mongo của infra cùng thả nổi thì riêng chúng đã đòi ~60 GB.
+    # DB này chỉ giữ nội dung tin nhắn chat nên 1 GB cache là thoải mái.
+    command:
+      - mongod
+      - --wiredTigerCacheSizeGB
+      - "${FE_MONGO_WT_CACHE_GB:-1}"
+      - --bind_ip_all
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER:-mongoadmin}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD:-mongoadmin}
+      - MONGO_INITDB_DATABASE=${MONGO_DB:-intramind}
+    volumes:
+      - mongo-data:/data/db
+    deploy:
+      resources:
+        limits:
+          memory: ${FE_MONGO_MEM_LIMIT:-2G}
+    networks:
+      - fe_internal
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "--quiet"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── One-shot: áp db/psql/migrate_NNN.sql còn thiếu trước khi backend lên ──
+  # Idempotent — hết migration thì exit 0 ngay.
+  db-migrate:
+    image: postgres:15-alpine
+    container_name: ${CONTAINER_PREFIX:-intramind-}fe-migrate
+    restart: "no"
+    environment:
+      - DB_HOST=sql-db
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_NAME=${DB_NAME:-intramind}
+    volumes:
+      - ../db/psql:/migrations:ro
+      - ./migrate.sh:/usr/local/bin/migrate.sh:ro
+    deploy:
+      resources:
+        limits:
+          memory: ${FE_MIGRATE_MEM_LIMIT:-512M}
+    entrypoint: ["sh", "/usr/local/bin/migrate.sh"]
+    depends_on:
+      sql-db:
+        condition: service_healthy
+    networks:
+      - fe_internal
+
+  # ── One-shot: seed unit gốc + role + super-admin (idempotent) ─────────────
+  # Dùng lại image gateway (asyncpg + bcrypt có sẵn) — cùng tag, không build 2 lần.
+  db-seed:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend-fastapi
+    image: ${IM_REGISTRY:-intramind}/fe-gateway:${IM_TAG:-devops}
+    container_name: ${CONTAINER_PREFIX:-intramind-}fe-seed
+    restart: "no"
+    environment:
+      - DB_HOST=sql-db
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_NAME=${DB_NAME:-intramind}
+    volumes:
+      - ../db/psql:/seed:ro
+    deploy:
+      resources:
+        limits:
+          memory: ${FE_SEED_MEM_LIMIT:-512M}
+    command: ["python", "/seed/seed.py"]
+    depends_on:
+      sql-db:
+        condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
+    networks:
+      - fe_internal
+
+  # ── Gateway/BFF backend-fastapi (:5050) ───────────────────────────────────
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend-fastapi
+    image: ${IM_REGISTRY:-intramind}/fe-gateway:${IM_TAG:-devops}
+    container_name: ${CONTAINER_PREFIX:-intramind-}fe-gateway
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-5050}:5050"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=5050
+      - FRONTEND_ORIGIN=${FRONTEND_ORIGIN:-*}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-24h}
+      - JWT_SECRET=${JWT_SECRET}
+      - DB_HOST=sql-db
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD:-postgres}
+      - DB_NAME=${DB_NAME:-intramind}
+      - MONGO_HOST=nosql-db
+      - MONGO_PORT=27017
+      - MONGO_USER=${MONGO_USER:-mongoadmin}
+      - MONGO_PASSWORD=${MONGO_PASSWORD:-mongoadmin}
+      - MONGO_DB=${MONGO_DB:-intramind}
+      # Mặc định là DNS service-name trên intramind_net (AI_SERVICE_HOST →
+      # ai-api:5001, AI_INGEST_HOST → be-api:5002 — đúng chiều, xem trap #3 của
+      # CLAUDE.md workspace). Khi AI/BE chạy bare-metal trên host, override
+      # trong docker/.env sang http://host.docker.internal:500x/api/v1 —
+      # extra_hosts bên dưới giữ cho lối đó hoạt động.
+      - AI_SERVICE_HOST=${AI_SERVICE_HOST:-http://ai-api:5001/api/v1}
+      - AI_INGEST_HOST=${AI_INGEST_HOST:-http://be-api:5002/api/v1}
+      - ZOMBIE_TASK_TIMEOUT_MS=${ZOMBIE_TASK_TIMEOUT_MS:-600000}
+      - UPLOAD_ALLOWED_EXTENSIONS=${UPLOAD_ALLOWED_EXTENSIONS:-.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.md,.png,.jpg,.jpeg}
+      - LLM_API_KEY=${LLM_API_KEY}
+      # Bug 1: nghe pub/sub trạng thái tài liệu của tier BE, để "Đang xử lý"
+      # được chốt cả khi không có trình duyệt nào mở. BA giá trị này phải TRÙNG
+      # .env của mta-be-intramind — lệch là im lặng, listener không nhận gì.
+      # `redis` là service của tier infra trên intramind_net.
+      - STATUS_LISTENER_ENABLED=${STATUS_LISTENER_ENABLED:-true}
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      - STATUS_PUBSUB_REDIS_DB=${STATUS_PUBSUB_REDIS_DB:-2}
+      - STATUS_PUBSUB_CHANNEL_PREFIX=${STATUS_PUBSUB_CHANNEL_PREFIX:-doc-status}
+    deploy:
+      resources:
+        limits:
+          memory: ${FE_BACKEND_MEM_LIMIT:-1G}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      sql-db:
+        condition: service_healthy
+      nosql-db:
+        condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
+      db-seed:
+        condition: service_completed_successfully
+    networks:
+      - fe_internal
+      - intramind_net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:5050/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  # ── SPA + Node proxy (:3000 trong container) ──────────────────────────────
+  # Service PHẢI tên `frontend`: nginx của tier infra trỏ cứng
+  # `location / { proxy_pass http://frontend:3000 }` qua intramind_net.
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    image: ${IM_REGISTRY:-intramind}/fe:${IM_TAG:-devops}
+    container_name: ${CONTAINER_PREFIX:-intramind-}fe-frontend
+    restart: unless-stopped
+    ports:
+      # Publish host 8001, KHÔNG phải 3000: host 3000 là điểm nóng của
+      # workspace (langfuse-web hardcode 3000, React dev server cũng 3000).
+      # Truy cập chính thức đi qua nginx của infra (:8080) → frontend:3000.
+      - "${FRONTEND_PORT:-8001}:3000"
+    deploy:
+      resources:
+        limits:
+          memory: ${FE_FRONTEND_MEM_LIMIT:-1G}
+    environment:
+      - PORT=3000
+      # server.js dùng làm target proxy /db /llm /tools (in-network DNS);
+      # generate-env.sh cũng chèn vào env-config.js cho SPA.
+      - REACT_APP_DB_HOST=${BACKEND_URL:-http://backend:5050}
+      - REACT_APP_FILE_EXT=${REACT_APP_FILE_EXT:-.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.md,.png,.jpg,.jpeg}
+      - REACT_APP_TOOL_PREFIX=/tools
+      - REACT_APP_LLM_PREFIX=/llm
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - fe_internal
+      - intramind_net
+    healthcheck:
+      # node:22-alpine không có curl; wget của busybox là đủ cho GET /.
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+networks:
+  # Bridge riêng của tier — datastore FE không lộ ra ngoài project này.
+  fe_internal:
+    driver: bridge
+  # Chủ sở hữu thật là mta-infrastructure-intramind (docker-compose.storages.yml).
+  # Ở đây LUÔN là external — khai `name:` KHÔNG kèm `external:` sẽ giành quyền sở
+  # hữu mạng khi include/merge (bài học sự cố nginx của repo infra). `name:` ĐI
+  # KÈM `external: true` thì ngược lại, an toàn: nó chỉ có nghĩa "dùng mạng có
+  # sẵn mang tên này", không tạo và không sở hữu.
+  # Không set NETWORK_NAME thì resolve đúng `intramind_net` y như trước, nên đây
+  # không phải thay đổi hành vi. Vì sao cần: trước 2026-07-30 `NETWORK_NAME` của
+  # deploy/02-up.sh là knob CHẾT — script tạo mạng tên khác nhưng compose vẫn đòi
+  # đúng chữ `intramind_net` và chết "declared as external, but could not be found".
+  intramind_net:
+    name: ${NETWORK_NAME:-intramind_net}
+    external: true
+
+volumes:
+  # Khai `name:` tường minh => compose KHÔNG xoá hai volume này khi `down -v`
+  # (kiểm chứng trên compose v5.3.1: volume vẫn mang label project nhưng sống
+  # sót). Với stack thật đó là lưới an toàn — dữ liệu user/RBAC/chat không bay
+  # vì một lệnh down nhầm. Muốn xoá thật: `docker volume rm intramind_fe_postgres
+  # intramind_fe_mongo`. Stack thử (VOLUME_PREFIX=imtest_) nhớ dọn tay.
+  postgres-data:
+    name: ${VOLUME_PREFIX:-intramind_}fe_postgres
+  mongo-data:
+    name: ${VOLUME_PREFIX:-intramind_}fe_mongo

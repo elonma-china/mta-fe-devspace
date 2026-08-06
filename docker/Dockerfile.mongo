@@ -1,0 +1,11 @@
+# Dockerfile.mongo — Mongo của tier FE, image intramind/fe-nosql.
+# Chỉ nướng init-mongo.js (chạy MỘT lần khi volume rỗng). mongo:7 — khác
+# mongo:6 của tier infra, hai container không liên quan nhau.
+FROM mongo:7
+
+LABEL org.opencontainers.image.title="intramind-fe-nosql" \
+      org.opencontainers.image.description="Mongo cua tier FE (noi dung tin nhan chat) + init-mongo.js seed lan dau"
+
+COPY db/mongo/init-mongo.js /docker-entrypoint-initdb.d/01-init-mongo.js
+
+EXPOSE 27017

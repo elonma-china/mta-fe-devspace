@@ -1,0 +1,303 @@
+/* src/features/admin/pages/UserManagement.css */
+
+/* Super-admin: prompt to focus a unit before any repository is shown. */
+.doc-focus-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 64px 16px;
+  color: #5a6b62;
+}
+
+.user-mgmt-layout {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: var(--space-md);
+  width: 100%;
+  height: 100%;
+}
+
+/* Left panel (Frame 7) */
+.um-sidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: none;
+  padding: 0;
+  height: calc(100% - var(--space-md));
+
+  width: var(--sidebar-width);
+  margin-top: var(--space-md);
+
+  background: var(--bg-secondary);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+}
+
+/* Story 123: the screen title sits at the TOP of the left menu panel (like Chat's
+   "Quản lý tài liệu"), below the global-header logo and ABOVE a divider. Height =
+   card-padding (24) + toolbar (56) = 80 so this divider lines up horizontally with
+   the content toolbar's divider (`.user-mgmt .toolbar`). Story 118 had removed the
+   old sidebar LOGO header; this re-adds a header carrying the per-tab TITLE. */
+.um-sidebar__header {
+  box-sizing: border-box;
+  height: 80px;
+  align-self: stretch;
+  /* Story 126: SYMMETRIC vertical padding so `align-items:center` truly centers the
+     title in the 80px header (was `... 0` = top-padding only → title pushed down /
+     "lệch"). Matches Chat's centered panel title. Divider (border-bottom) stays at
+     y=80 → story-123 alignment unchanged. */
+  padding: 0 var(--space-md);
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border-neutral-primary);
+}
+
+.um-sidebar__title {
+  margin: 0;
+  /* Story 127: match Chat's `.panel-title` 100% via the shared title tokens —
+     adds the Inter character variants (font-feature-settings cv01-cv10) + the
+     exact font-family the left-menu title was missing → hết lệch "độ đậm/nhạt". */
+  font-family: var(--title-font-family);
+  font-weight: 500;
+  /* Story 126: match Chat's `.panel-title` typography (h3 / line 1.4 / -0.03em). */
+  font-size: var(--font-size-h3);
+  line-height: 1.4;
+  letter-spacing: -0.03em;
+  color: var(--txt-neutral-primary);
+  font-feature-settings: var(--title-font-feature-settings);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Story 126: level the CONTENT toolbar with the centered menu title ("dóng ngang").
+   The content becomes an 80px flush header (matching the 80px menu-title header) so
+   its controls center at the SAME height (~40) as the title, while the divider stays
+   at y=80 (story 123). Card top-padding removed + toolbar 56→80. SCOPED to the nav
+   screens (`.user-mgmt-layout .user-mgmt`) so AuditLogs (`.user-mgmt.audit-mgmt`, no
+   layout wrapper) is untouched. Controls stay 44px (story 124), centered. */
+.user-mgmt-layout .user-mgmt {
+  padding-top: 0;
+}
+
+.user-mgmt-layout .user-mgmt .toolbar {
+  height: 80px;
+}
+
+/* Frame 15 — navigation */
+.um-sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  align-self: stretch;
+  padding: var(--space-lg) var(--space-md);
+  gap: var(--space-sm);
+}
+
+.um-nav-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  align-self: stretch;
+  padding: var(--space-sm) var(--space-md);
+  gap: var(--space-md);
+
+  height: 40px;
+
+  background: var(--bg-secondary);
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+}
+
+.um-nav-item--active {
+  background: var(--bg-primary);
+}
+
+.um-nav-item__icon {
+  flex: none;
+  width: 24px;
+  height: 24px;
+}
+
+.um-nav-item__label {
+  flex: none;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 500;
+  font-size: var(--font-size-base);
+  line-height: 24px;
+  letter-spacing: -0.02em;
+  color: var(--txt-neutral-primary);
+  white-space: nowrap;
+}
+
+.user-mgmt {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: var(--space-md);
+  padding: var(--card-padding);
+  gap: 12px;
+
+  /* Story 42: no hardcoded max-width / auto margins — on wide screens the cap
+     + centering left a large gap between the left menu and the list. `flex: 1`
+     lets the content fill the space next to the sidebar at any viewport. */
+  width: 100%;
+  height: calc(100% - var(--space-md));
+  background: var(--bg-secondary);
+  border-radius: var(--card-radius);
+  overflow: hidden;
+
+  box-shadow: var(--card-shadow);
+}
+
+.user-mgmt .toolbar {
+  display: flex;
+  flex-direction: row;
+  /* Story 43: no space-between — it spread leftover width into uneven gaps so
+     the search↔lookup distance didn't match the design. Items now sit at the
+     fixed `gap`; the trailing action button(s) are pushed right below. */
+  align-items: center;
+  padding: 0;
+  gap: 12px;
+
+  width: 100%;
+  height: 56px;
+
+  flex: none;
+  order: 0;
+  align-self: stretch;
+  flex-grow: 0;
+
+  /* Story 123: content-side divider under the toolbar — sits at card-padding + 56px,
+     lining up with the left menu's title divider (`.um-sidebar__header`). */
+  border-bottom: 1px solid var(--border-neutral-primary);
+}
+
+/* Story 43: push the trailing action button group to the right so search +
+   lookup stay adjacent at the toolbar gap. Only the first `.add-user-btn`
+   absorbs the free space; a following one (super-admin unit btn + upload) sits
+   next to it at the gap. */
+.user-mgmt .toolbar .add-user-btn {
+  margin-left: auto;
+}
+
+.user-mgmt .toolbar .add-user-btn + .add-user-btn {
+  margin-left: 0;
+}
+
+.add-user-btn {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+
+  width: 180px;
+  height: 40px;
+
+  background: var(--brand-primary);
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+
+  gap: 8px;
+  padding: 10px 16px;
+
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.1px;
+  color: var(--bg-primary);
+}
+
+.add-user-btn:active {
+  transform: translateY(1px);
+}
+
+.add-user-btn__icon {
+  flex: none;
+  width: 20px;
+  height: 20px;
+}
+
+.add-user-btn__label {
+  flex: none;
+  white-space: nowrap;
+}
+
+.user-mgmt .toolbar .searchbar {
+  flex: 1;
+  max-width: 720px;
+}
+
+/* Story 124: shrink the toolbar controls to the Chat lookup proportion (44px) so
+   search + lookup + button share ONE height (were 56/48/40). SCOPED to the
+   management toolbar — the shared SearchBar/MultiSelectDropdown base (56/48) is
+   UNCHANGED (chat/modals keep their size). The toolbar box itself stays 56px so
+   the story-123 divider stays aligned with the left-menu title divider. */
+.user-mgmt .toolbar .searchbar,
+.user-mgmt .toolbar .searchbar .searchbar__input,
+.user-mgmt .toolbar .searchbar .searchbar__icon {
+  height: 44px;
+}
+
+.user-mgmt .toolbar .ms-dropdown__trigger {
+  height: 44px;
+}
+
+.user-mgmt .toolbar .add-user-btn {
+  height: 44px;
+}
+
+@media (max-width: 768px) {
+  .add-user-btn {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    padding: 10px;
+  }
+
+  .add-user-btn__label {
+    display: none;
+  }
+
+  .user-mgmt {
+    padding: 0;
+  }
+}
+
+.user-card-list {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex: 1;
+  overflow: hidden;
+}
+
+.user-card-scroll-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+@media (min-width: 768px) {
+  .user-card-list {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .user-mgmt .data-table-container {
+    display: none;
+  }
+}

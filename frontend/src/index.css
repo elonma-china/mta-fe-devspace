@@ -1,0 +1,173 @@
+/* ================================
+   Design tokens
+=================================== */
+:root {
+  /* Device width */
+  --mobile-width: 375px;
+  --tablet-width: 768px;
+
+  /* Color */
+  --bg-primary: #F2FBF8;
+  --bg-secondary: #FFFFFF;
+  --bg-disable: #bfbfbf;
+  --bg-tertiary: #d6f2e8;
+  --bg-loading-primary: #267c69;
+  --bg-neutral-primary: #ffffff;
+  --bg-neutral-secondary: #f5f5f5;
+  --color-display-leaf-default: #45B441;
+
+
+  --txt-neutral-primary: #141414;
+  --txt-neutral-secondary: #262626;
+  --txt-neutral-tertiary: #595959;
+  --txt-primary: #226335;
+  --txt-disable: #8C8C8C;
+
+  --border-neutral-primary: #F0F0F0;
+  --border-neutral-secondary: #d9d9d9;
+  --border-secondary: #aae5d3;
+  --border-primary: #267c69;
+  --brand-primary: #226355;
+
+  --content-neutral-strong: #121212;
+
+  --imodal-badge-grad-a: #267c69;
+  --imodal-badge-grad-b: #46bea3;
+
+  /* Spacing Scale */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 32px;
+
+  /* Shared Border Radius */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 24px;
+
+  /* --- Size Tokens (Responsive) --- */
+  --header-height: 64px;
+  --footer-height: 48px;
+  --main-padding: var(--space-md);
+
+  /* Story 119: single source of truth for the shell's left column (header logo
+     zone + left menu + admin sidebar) and for content-card inner padding —
+     unifies the previously-divergent 320/300/24 magic numbers. */
+  --sidebar-width: 300px;
+  --card-padding: 24px;
+  /* Story 120: single drop-shadow for every framed page card (Chat panels, admin
+     cards, unit-repo card, doc split) so they read as one consistent depth. */
+  --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  /* Story 121: single corner-radius (=16px) for every framed page card (Chat
+     panels + admin/repo cards) so they read as one family (ADR-065). Chat used
+     --radius-lg (12px) → its corners stood out vs the 16px repo/admin cards. */
+  --card-radius: 16px;
+
+  --panel-analysis-width: 360px;
+  --panel-analysis-expanded-width: 600px;
+
+  --font-size-h1: 24px;
+  --font-size-h3: 20px;
+  --font-size-base: 16px;
+  --font-size-sm: 14px;
+  --font-size-xs: 12px;
+
+  /* Story 127: single source for screen-title typography (was drifting because
+     Chat `.panel-title` alone carried the Inter character variants + exact
+     font-family; the left-menu `.um-sidebar__title` missed them → "độ đậm/nhạt"
+     lệch). Both now reference these so they can't drift apart again. */
+  --title-font-family: 'Inter', sans-serif;
+  --title-font-feature-settings: 'cv01' 1, 'cv02' 1, 'cv03' 1, 'cv04' 1, 'cv10' 1;
+
+  --logo-width: 113px;
+  --logo-height: 34px;
+}
+
+.dark {
+  --bg-primary: #262626;
+  --bg-secondary: #191D1D;
+  --bg-tertiary: #1d433c;
+  --bg-loading-primary: #0c2724;
+  --bg-neutral-primary: #191d1d;
+  --bg-neutral-secondary: #262626;
+
+  --content-neutral-strong: #121212;
+
+  --txt-neutral-primary: #FFFFFF;
+  --txt-neutral-secondary: #f0f0f0;
+  --txt-neutral-tertiary: #BFBFBF;
+  --txt-primary: #77d1b8;
+  --txt-disable: #595959;
+
+  --border-neutral-primary: #454545;
+  --border-neutral-secondary: #595959;
+  --border-primary: #267c69;
+  --border-secondary: #595959;
+  --brand-primary: #77d1b8;
+}
+
+/* Tablet Overrides */
+@media (max-width: 768px) {
+  :root {
+    --header-height: 64px;
+    --footer-height: 48px;
+    --main-padding: var(--space-md);
+
+    --panel-analysis-width: 360px;
+    --panel-analysis-expanded-width: 600px;
+    
+    --font-size-h1: 24px;
+    --font-size-h3: 20px;
+    --font-size-base: 16px;
+    --font-size-sm: 14px;
+    --font-size-xs: 12px;
+
+    --logo-width: 113px;
+    --logo-height: 34px;
+  }
+}
+
+/* Mobile Overrides */
+@media (max-width: 365px) {
+  :root {
+    --header-height: 64px;
+    --footer-height: 48px;
+    --main-padding: var(--space-md);
+
+    --panel-analysis-width: 360px;
+    --panel-analysis-expanded-width: 600px;
+    
+    --font-size-h1: 24px;
+    --font-size-h3: 20px;
+    --font-size-base: 16px;
+    --font-size-sm: 14px;
+    --font-size-xs: 12px;
+
+    --logo-width: 113px;
+    --logo-height: 34px;
+  }
+}
+
+/* ================================
+   Base reset
+=================================== */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* Prevents the whole browser from scrolling */
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  color: var(--txt-neutral-primary);
+  background: var(--bg-primary);
+}

@@ -1,0 +1,341 @@
+/* ===== Dropzone root & state modifiers ===== */
+.ufs-dropzone {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* center */
+  align-items: center;
+  padding: 24px;
+  gap: 12px;
+  position: relative;
+  width: 100%;
+  height: 300px;
+
+  border: 1px dashed var(--border-secondary);
+  border-radius: 16px;
+
+  user-select: none;
+  transition: background 120ms ease, border-color 120ms ease;
+  cursor: pointer;
+}
+
+.ufs-dropzone.is-dragging {
+  background: var(--bg-primary);
+  border-color: var(--brand-primary);
+}
+
+.ufs-dropzone.is-uploading {
+  pointer-events: none;
+  /* prevent new clicks/drags while uploading */
+  opacity: 0.7;
+}
+
+/* ===== Loading overlay (when uploading) ===== */
+.ufs-loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  /* use rgba(0,0,0,.35) for dark overlay if you prefer */
+  border-radius: inherit;
+  z-index: 2;
+}
+
+.ufs-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid transparent;
+  border-top-color: var(--brand-primary);
+  border-right-color: var(--brand-primary);
+  border-radius: 50%;
+  animation: ufs-spin 0.8s linear infinite;
+}
+
+@keyframes ufs-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.ufs-loading-text {
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--txt-neutral-primary);
+}
+
+/* ===== Small circular icon container ===== */
+.ufs-drop-icon-wrap {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 8px;
+  gap: 10px;
+
+  width: 40px;
+  height: 40px;
+
+  background: var(--bg-primary);
+  color: var(--brand-primary);
+  border-radius: 100px;
+}
+
+/* Fallback square if you ever need it */
+.ufs-drop-icon {
+  width: 24px;
+  height: 24px;
+  background: var(--brand-primary);
+  border-radius: 4px;
+}
+
+/* ===== Text group ===== */
+.ufs-drop-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+
+  /* Story 89: container-relative (was fixed 704px). The block is reused in the
+     narrow admin dialog (.dem-dialog ≈520px) where 704px overflowed → horizontal
+     scrollbar; capping keeps the wide chat modal's ≤704px look. Height auto so a
+     wrapped caption isn't clipped. */
+  width: 100%;
+  max-width: 704px;
+  height: auto;
+}
+
+.ufs-drop-title {
+  width: 100%;
+  max-width: 704px;
+  height: auto;
+
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-style: Medium;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+  /* 150% */
+  text-align: center;
+  letter-spacing: -0.02em;
+  color: var(--txt-neutral-primary);
+  margin: 0 auto;
+}
+
+.ufs-drop-caption {
+  width: 100%;
+  max-width: 704px;
+  height: auto;
+
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-style: Regular;
+  font-weight: 450;
+  font-size: 12px;
+  line-height: 16px;
+  /* 133% */
+  text-align: center;
+  color: var(--txt-disable);
+}
+
+/* ===== Outline button ===== */
+.ufs-outline-wrap {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+
+  width: 125px;
+  height: 40px;
+}
+
+.ufs-outline-btn {
+  appearance: none;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.ufs-outline-state {
+  box-sizing: border-box;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+
+  width: 125px;
+  height: 40px;
+
+  border: 1px solid var(--border-neutral-secondary);
+  border-radius: 100px;
+  padding: 10px 16px;
+  gap: 8px;
+}
+
+.ufs-outline-label {
+  width: 93px;
+  height: 20px;
+
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-style: Medium;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  /* 143% */
+  display: flex;
+  align-items: center;
+  letter-spacing: 0.1px;
+
+  color: var(--txt-neutral-primary);
+}
+
+/* ===== Pending file strip (inside dropzone) ===== */
+.ufs-filestrip {
+  position: absolute;
+  bottom: 16px;
+  /* adjust spacing from border */
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  width: 100%;
+  margin-top: 0;
+  /* reset previous margin */
+}
+
+.ufs-strip-scroll {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  overflow-x: auto;
+  /* horizontal scroll when long */
+  padding-bottom: 4px;
+  /* keep scrollbar from touching chips */
+}
+
+/* scrollbar styling */
+.ufs-strip-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.ufs-strip-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-secondary);
+  border-radius: 8px;
+}
+
+.ufs-strip-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Chip-style file pill */
+.ufs-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 320px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-neutral-secondary);
+  border-radius: 999px;
+  background: var(--bg-secondary, #fff);
+  white-space: nowrap;
+}
+
+.ufs-chip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+  font-size: 13px;
+  color: var(--txt-neutral-primary);
+}
+
+.ufs-chip-size {
+  font-size: 12px;
+  color: var(--txt-disable);
+}
+
+.ufs-chip-close {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0 -2px 0 0;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.ufs-chip-close svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* (optional) container for right-aligned actions if you add them later */
+.ufs-strip-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ===== Accessibility focus rings ===== */
+.ufs-outline-btn:focus-visible,
+.ufm-close-btn:focus-visible,
+.ufs-dropzone:focus-visible {
+  outline: 2px solid #267C69;
+  outline-offset: 2px;
+}
+
+/* ===== 8) Responsive tweaks ===== */
+@media (max-width: 768px) {
+  .ufm-modal {
+    width: 92vw;
+    height: auto;
+    max-height: 92vh;
+    overflow: auto;
+  }
+
+  .ufs-drop-text,
+  .ufs-drop-title,
+  .ufs-drop-caption {
+    width: 280px;
+  }
+
+  .ufs-drop-text {
+    height: 84px;
+  }
+
+  .ufs-drop-title {
+    height: 48px;
+  }
+
+  .ufs-drop-caption {
+    height: 32px;
+  }
+
+  .ufm-footer-progress {
+    max-width: unset;
+  }
+
+  .ufs-chip {
+    max-width: 260px;
+  }
+
+  .ufs-chip-name {
+    max-width: 170px;
+  }
+
+  .ufs-dropzone {
+    padding: 0;
+    height: 220px;
+  }
+}
+
+@media (max-width: 375px) {}

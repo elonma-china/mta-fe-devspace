@@ -1,0 +1,121 @@
+/* src/features/chat/components/ThinkingSection.css */
+.ci-thinking-wrapper {
+  width: 100%;
+  margin: var(--space-sm) 0;
+  display: flex;
+}
+
+.ci-thinking-container {
+  width: 100%;
+  background: transparent;
+}
+
+.ci-thinking-header {
+  width: 40%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-xs) 0;
+  cursor: pointer;
+  gap: var(--space-md);
+  user-select: none;
+  min-width: 0;
+}
+
+.ci-thinking-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  min-width: 0;
+}
+
+.ci-thinking-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid var(--border-neutral-secondary);
+  border-top-color: var(--brand-primary);
+  border-radius: 50%;
+  animation: ci-spin 1s linear infinite;
+  flex-shrink: 0;
+}
+
+.ci-thinking-current-msg {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--txt-neutral-tertiary);
+  line-height: 24px;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  /* Ensures the text takes up the available space in the status flexbox */
+  flex: 1;
+}
+
+.ci-thinking-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.ci-thinking-stop-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-neutral-secondary);
+  color: var(--txt-neutral-secondary);
+  font-size: 14px;
+  padding: var(--space-xs) var(--space-md);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.ci-thinking-stop-btn:hover {
+  background: var(--bg-neutral-secondary);
+  border-color: var(--brand-primary);
+}
+
+.ci-thinking-chevron {
+  color: var(--txt-neutral-primary);
+  transition: transform 0.2s;
+  width: 24px;
+  height: 24px;
+}
+
+.ci-thinking-chevron.active {
+  transform: rotate(180deg);
+}
+
+.ci-thinking-body {
+  margin-top: 4px;
+  padding: var(--space-sm) var(--space-md) var(--space-sm) var(--space-xl);
+  border-left: var(--radius-xs) solid var(--border-neutral-primary);
+}
+
+.ci-thinking-history {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.ci-thinking-step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 14px;
+  color: var(--txt-disable);
+  margin-bottom: 6px;
+}
+
+.ci-step-indicator {
+  width: 5px;
+  height: 5px;
+  background: var(--brand-primary);
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+@keyframes ci-spin {
+  to { transform: rotate(360deg); }
+}

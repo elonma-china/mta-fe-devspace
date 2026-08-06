@@ -1,0 +1,222 @@
+/* src/features/admin/components/DocumentEditModal.css */
+
+.dem-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dem-dialog {
+  position: relative;
+  width: min(520px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  padding: 24px;
+}
+
+.dem-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 0;
+}
+
+.dem-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 16px;
+}
+
+/* Story 45: read-only target group shown in the upload modal when entering the
+   repository via a group link. */
+.dum-target-group {
+  margin: -8px 0 16px;
+  font-size: 14px;
+  color: var(--txt-neutral-secondary, #666);
+}
+
+/* Story 48: "Đánh dấu đã duyệt" checkbox (only for a COMPLETED doc). */
+.dem-approve {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--txt-neutral-primary, #1a1a1a);
+  cursor: pointer;
+}
+
+.dem-approve input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* Story 47: per-file upload progress list (multi-file upload). */
+.dum-file-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.dum-file-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--border-neutral-secondary, #eef1f0);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.dum-file-name {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dum-file-status {
+  flex: 0 0 auto;
+  font-size: 12px;
+  color: var(--txt-neutral-secondary, #666);
+}
+
+.dum-file-done .dum-file-status {
+  color: var(--brand-primary, #226355);
+}
+
+.dum-file-error .dum-file-status {
+  color: var(--status-error-text, #d93025);
+}
+
+.dem-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dem-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dem-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #344054;
+}
+
+.dem-input {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  padding: 0 12px;
+}
+
+.dem-input input,
+.dem-input textarea,
+.dem-select {
+  flex: 1;
+  width: 100%;
+  border: none;
+  outline: none;
+  padding: 10px 0;
+  font-size: 14px;
+  background: transparent;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.dem-file-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.dem-file-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: #344054;
+  word-break: break-all;
+}
+
+.dem-file-size {
+  font-size: 12px;
+  color: #667085;
+}
+
+.dem-file-clear {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  line-height: 0;
+}
+
+.dem-warn {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  color: #b54708;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.dem-footer {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.dem-secondary {
+  background: #fff;
+  color: #344054;
+  border: 1px solid #d0d5dd;
+  border-radius: 999px;
+  padding: 10px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dem-primary {
+  background: #1c5b4c;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 28px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dem-primary:disabled,
+.dem-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

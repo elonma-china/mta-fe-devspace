@@ -1,0 +1,55 @@
+/* src/features/documents/components/viewer/ResizeHandle.css */
+
+.dv-resize-handle {
+  width: 8px;
+  flex-shrink: 0;
+  cursor: col-resize;
+  /* Story 75: transparent — the two preview panels already have their own card
+     borders (story 59), so the divider stays balanced with the left edge instead
+     of the old striped (repeating-linear-gradient) column. Drag stays intact:
+     width is the hit area, the hover hint + ghost-on-drag remain. */
+  background: transparent;
+  align-self: stretch;
+}
+
+.dv-resize-handle:hover {
+  background-color: var(--accent-primary-soft, rgba(15, 123, 90, 0.12));
+}
+
+/* While dragging, keep the col-resize cursor over the whole document. */
+body.dv-resizing,
+body.dv-resizing * {
+  cursor: col-resize !important;
+  user-select: none;
+}
+
+/* Story 60: while dragging, neutralize the PDF <iframe> so it can't swallow the
+   mouse events the drag relies on (an iframe is a separate document; events over
+   it don't reach the parent window → the divider froze + a mouseup over it left
+   the drag "stuck"). */
+body.dv-resizing iframe {
+  pointer-events: none;
+}
+
+/* Story 60: full-window shield rendered DURING a drag — sits ABOVE the content
+   (incl. the iframe) so every pointer event stays in the parent document and
+   reaches the window-level drag listeners. Transparent; only the ghost shows. */
+.dv-resize-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  cursor: col-resize;
+}
+
+/* Story 60: a thin vertical "ghost" that follows the cursor and previews where
+   the divider will land (the width commits on release, not live → no per-tick
+   PDF re-fit / host re-render). */
+.dv-resize-ghost {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--accent-primary, #0f7b5a);
+  pointer-events: none;
+}

@@ -1,0 +1,229 @@
+.main-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0;
+    gap: 24px;
+    width: 100%;
+    min-height: var(--header-height);
+    box-sizing: border-box;
+    align-self: stretch;
+}
+
+.main-header .left {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0;
+    gap: 16px;
+    min-height: 40px;
+    /* Story 118/119: reserve the sidebar-column width (shared --sidebar-width
+       token) so the logo aligns with the left menu below it on every screen and
+       the screen title starts at the content column. */
+    flex: 0 0 auto;
+    min-width: var(--sidebar-width);
+}
+
+/* Story 118: admin screen title — sits AFTER the logo, aligned over the content
+   area (between the left menu and the right actions). Dynamic per tab (story 117
+   store). Truncates instead of overflowing on long unit names. */
+.main-header__screen-title {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    text-align: left;
+    font-weight: 500;
+    font-size: 18px;
+    line-height: 24px;
+    color: var(--txt-neutral-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.main-logo {
+    color: var(--txt-neutral-secondary);
+    width: var(--logo-width);
+    height: var(--logo-height);
+}
+
+.brand {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    font-weight: 500;
+    font-size: var(--font-size-h1);
+    line-height: 1.33;
+    /* 32px / 24px */
+    letter-spacing: -0.03em;
+    color: var(--txt-neutral-primary);
+}
+
+.main-page .right {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0;
+    gap: 32px;
+    min-height: var(--header-height);
+    flex: 0 0 auto;
+}
+
+.brand.user-management {
+    line-height: 24px;
+    font-size: 18px;
+    color: var(--txt-neutral-primary);
+}
+
+body.dark .logo-light {
+    display: none !important;
+}
+
+body:not(.dark) .logo-dark {
+    display: none !important;
+}
+
+.desktop-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 32px;
+}
+
+/* Story 38: "Kho tài liệu" header shortcut (admin only) — pill button. */
+.repo-shortcut-btn {
+    /* Story 54: anchor the unread badge to this button's corner. */
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px;
+    background: var(--bg-neutral-primary, #fff);
+    border: 1px solid var(--border-neutral-secondary, #d5dad7);
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--txt-neutral-primary, #1a1a1a);
+    white-space: nowrap;
+}
+
+/* Story 54: unread count badge at the button's top-right (Figma 1074-26179).
+   Not rendered when the count is 0. */
+.repo-shortcut-btn__badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--status-error-text, #d93025);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    border-radius: 9px;
+}
+
+.repo-shortcut-btn:hover {
+    background: var(--bg-neutral-hover, rgba(0, 0, 0, 0.04));
+}
+
+.repo-shortcut-btn__icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.mobile-actions {
+    display: none;
+    position: relative;
+}
+
+.mobile-menu-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Tablet and Mobile Breakpoint */
+@media (max-width: 768px) {
+    .main-header {
+        padding: 0;
+        padding-bottom: var(--space-lg);
+        border-bottom: 1px solid var(--border-neutral-primary);
+        min-height: 40px;
+        height: 40px;
+    }
+
+    .main-header .right,
+    .main-page .right {
+        gap: 8px;
+        min-height: 40px;
+        height: 40px;
+        padding: 0;
+    }
+
+    .desktop-actions {
+        display: none;
+    }
+
+    .mobile-actions {
+        display: flex;
+        align-items: center;
+    }
+}
+
+.mobile-actions-dropdown {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    padding: var(--space-sm);
+    gap: var(--space-sm);
+
+    position: absolute;
+    top: 32px;
+    right: 0;
+
+    width: 112px;
+
+    background: var(--bg-primary);
+    border: 1px solid var(--border-secondary);
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.07);
+    border-radius: 12px;
+    z-index: 100;
+}
+
+.mobile-actions-info-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0px;
+    gap: 12px;
+
+    width: 86px;
+    height: 40px;
+}
+
+.mobile-actions-info-row span {
+    font-family: 'Inter', sans-serif;
+    font-style: normal;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: -0.02em;
+    color: var(--txt-neutral-primary);
+}

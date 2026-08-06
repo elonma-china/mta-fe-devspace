@@ -1,0 +1,128 @@
+/* src/features/admin/pages/DocumentManagement.css
+   Story 39: split layout for the in-place document viewer on the repository
+   management screen — list on the left, viewer on the right. */
+
+/* Story 56 (fix story 54): rows for documents this admin has NOT read yet are
+   shown in BRAND-TEAL text + semibold, matching Figma 1088-24989 (unread = teal
+   #226355 semibold, read = dark regular). NO red dot, NO background tint — the
+   story-54 dot/padding did not match the design. Cleared when the doc is opened
+   (markDocumentRead → row becomes a normal read row). The column cells no longer
+   carry an inline font-weight, so this class drives both weight and colour. */
+.data-table tr.dm-row--unread td {
+  color: var(--brand-primary, #226355);
+  font-weight: 600;
+}
+
+.dm-split {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  /* Story 40: the draggable ResizeHandle is the visual separator. Story 64: add a
+     gap = var(--space-md) so the preview↔content spacing matches the menu↔content
+     gap (.user-mgmt-layout) — even, balanced cards. The ResizeHandle drag
+     mechanism (story 60) is NOT touched. */
+  gap: var(--space-md);
+}
+
+.dm-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  gap: 12px;
+  /* Story 59: content panel = bordered card (Figma 1146-24465). No overflow:hidden
+     so the group-filter dropdown popover isn't clipped. Story 64: radius 16px to
+     match the menu card (.um-sidebar) — one consistent card family. */
+  /* Story 125: borderless (box-shadow only). */
+  border-radius: var(--card-radius);
+  padding: var(--space-md, 16px);
+  box-shadow: var(--card-shadow);
+}
+
+/* Story 40: width is driven by the drag ratio (inline `flex` style); keep the
+   frame chrome here. ResizeHandle (.dv-resize-handle) sits just before it. */
+.dm-viewer {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  /* Story 59: preview panel = bordered card (Figma 1146-24465). overflow:hidden
+     (above) clips the viewer to the rounded corners. Story 64: radius 16px to
+     match the menu card (.um-sidebar) — one consistent card family. */
+  /* Story 125: borderless (box-shadow only). */
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+}
+
+/* Story 40: keep the "Thao tác" action icons on a single line so the column
+   doesn't wrap/misalign when the preview narrows the table. */
+.dm-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+}
+
+.dm-actions svg {
+  margin-right: 0;
+  flex-shrink: 0;
+}
+
+/* Story 49: coloured status pill in the "Trạng thái" column. The variant class
+   carries the colour; the base styles the pill shape. Unknown status → neutral. */
+.dm-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.dm-status--approved {
+  background: var(--bg-brand-subtle, #d6f2e8);
+  color: var(--brand-primary, #1a7a4f);
+}
+
+.dm-status--completed {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.dm-status--processing {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.dm-status--pending,
+.dm-status--neutral {
+  background: #f0f0f0;
+  color: var(--txt-neutral-tertiary, #666);
+}
+
+.dm-status--error {
+  background: #fde2e1;
+  color: var(--status-error-text, #d93025);
+}
+
+/* Story 45: the group name in the groups list is a link that opens the
+   repository tab filtered by that group. Styled as inline text, not a button. */
+.dm-group-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: var(--brand-primary, #226355);
+  cursor: pointer;
+  text-align: left;
+}
+
+.dm-group-link:hover {
+  text-decoration: underline;
+}

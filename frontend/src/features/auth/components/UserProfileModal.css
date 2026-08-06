@@ -1,0 +1,384 @@
+/* Hint shown when changing the unit clears the role (must re-pick a role). */
+.aum-hint {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #b54708;
+}
+
+/* Info note under the locked unit field for the commander ("Chỉ huy") role. */
+.aum-note {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--brand-primary, #226355);
+}
+
+/* root tokens (fallbacks to your existing CSS variables if present) */
+:root {
+    --aum-shadow: 0px 16px 44px rgba(0, 0, 0, 0.11);
+}
+
+/* Backdrop */
+.aum-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    display: grid;
+    place-items: center;
+    z-index: 1000;
+}
+
+/* Dialog */
+.aum-dialog {
+    position: relative;
+    width: 480px;
+    max-width: calc(100vw - 24px);
+    /* Story 73: size to content (was a fixed 652px that forced an unnecessary
+       scrollbar); keep max-height so it still scrolls on short viewports. */
+    height: auto;
+    max-height: calc(100dvh - 24px);
+    background: var(--bg-secondary);
+    border-radius: 24px;
+    box-shadow: var(--aum-shadow);
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+}
+
+/* Close button (top-right) */
+.aum-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    border: none;
+    background: transparent;
+    border-radius: 1000px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+}
+
+.aum-close svg {
+    width: 20px;
+    height: 20px;
+    color: var(--txt-neutral-primary);
+}
+
+/* Content area */
+.aum-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+    height: 100%;
+}
+
+.aum-header {
+    padding-right: 24px;
+}
+
+.aum-title {
+    margin: 0;
+    color: var(--txt-neutral-primary);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-style: Semi Bold;
+    font-weight: 600;
+    font-size: 24px;
+    line-height: 32px;
+    letter-spacing: -0.03em;
+}
+
+/* Fields stack */
+.aum-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1 1 auto;
+    /* Story 92: this stack no longer scrolls — that scroll ancestor (story 73)
+       was clipping the absolute dropdown overlay (story 84's reason for going
+       in-flow). Without it the lookup floats over the fields and the dialog does
+       not resize. The dialog still caps at max-height (story 73); the popup
+       scrolls within itself. */
+    min-height: 0;
+}
+
+.aum-field {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.aum-label {
+    color: var(--txt-neutral-primary);
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: -0.02em;
+}
+
+/* Input wrapper */
+.aum-input {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 12px 16px;
+    gap: 10px;
+    height: 48px;
+    border: 1px solid var(--border-neutral-primary);
+    border-radius: 100px;
+    background: var(--bg-secondary);
+}
+
+.aum-input input {
+    flex: 1 1 auto;
+    width: 100%;
+    height: 24px;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--txt-neutral-primary);
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 24px;
+    letter-spacing: -0.02em;
+}
+
+.aum-input input::placeholder {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-style: Medium;
+    color: var(--txt-disable);
+}
+
+/* Input with trailing icon */
+.aum-input-with-addon {
+    display: grid;
+    grid-template-columns: 1fr 40px;
+    align-items: center;
+    padding-right: 6px;
+    /* to visually center the icon in the pill */
+}
+
+.aum-icon-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    border-radius: 1000px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+}
+
+.aum-icon-btn svg {
+    width: 24px;
+    height: 24px;
+}
+
+.aum-spin {
+    animation: aum-rot 1s linear infinite;
+}
+
+@keyframes aum-rot {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Footer */
+.aum-footer {
+    display: flex;
+    justify-content: flex-end;
+    height: 40px;
+    gap: 16px;
+}
+
+.aum-primary {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    height: 40px;
+    min-width: 97px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 100px;
+    background: var(--brand-primary);
+    color: var(--bg-primary);
+    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 20px;
+    cursor: pointer;
+}
+
+.aum-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Responsive (Tablet) */
+@media (max-width: 768px) {
+    .aum-backdrop {
+        align-items: flex-end;
+    }
+
+    .aum-dialog {
+        width: 100%;
+        max-width: 768px;
+        height: auto;
+        max-height: calc(100dvh - 24px);
+        border-radius: 24px 24px 0px 0px;
+        padding: 16px 16px 24px;
+    }
+
+    .aum-title {
+        font-size: 18px;
+        line-height: 24px;
+    }
+
+    .aum-content {
+        gap: 24px;
+    }
+
+    .aum-footer {
+        flex-direction: row;
+        height: auto;
+    }
+
+    .aum-primary {
+        flex: 1;
+        width: auto;
+    }
+}
+
+/* Responsive (Mobile) */
+@media (max-width: 375px) {
+    .aum-dialog {
+        width: 100%;
+        max-width: 375px;
+    }
+}
+
+/* Custom Dropdowns */
+.aum-dropdown-container {
+    position: relative;
+    width: 100%;
+}
+
+.aum-dropdown-trigger {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    width: 100%;
+    height: 48px;
+    border: 1px solid var(--border-neutral-primary);
+    border-radius: 100px;
+    background: var(--bg-secondary);
+    cursor: pointer;
+    text-align: left;
+    outline: none;
+}
+
+.aum-dropdown-placeholder {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    color: var(--txt-disable);
+}
+
+.aum-dropdown-value {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    color: var(--txt-neutral-primary);
+}
+
+/* Locked unit picker (commander role): non-interactive, greyed. */
+.aum-dropdown-trigger:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    background: var(--bg-disabled, #f1f4f3);
+}
+
+.aum-dropdown-arrow {
+    width: 24px;
+    height: 24px;
+    color: var(--txt-neutral-primary);
+    transition: transform 0.2s ease;
+}
+
+.aum-dropdown-arrow.open {
+    transform: rotate(180deg);
+}
+
+/* Story 92 (supersedes story 84's in-flow): render the option list as an
+   ABSOLUTE OVERLAY (like .ms-dropdown__panel) so opening a lookup floats over the
+   fields instead of pushing them — the dialog no longer resizes, and the absolute
+   X button no longer shifts (which made the close click misfire). This is safe
+   because story 92 also removes the `.aum-fields { overflow: auto }` clipping
+   ancestor, so the overlay is no longer clipped. The popup gets its own
+   max-height + scroll for long unit lists. */
+.aum-dropdown-list {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 8px);
+    z-index: 5;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    padding: 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-neutral-primary);
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.07);
+    border-radius: 16px;
+    max-height: 240px;
+    overflow-y: auto;
+}
+
+.aum-dropdown-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 16px;
+    height: 40px;
+    min-height: 40px;
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    color: var(--txt-neutral-primary);
+    text-align: left;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.15s ease;
+}
+
+.aum-dropdown-item:hover {
+    background: var(--bg-hover, #F5F5F5);
+}
+
+.aum-dropdown-item.selected {
+    background: var(--bg-selected, #E6F7F0);
+    color: var(--brand-primary);
+}
+
+.aum-dropdown-empty {
+    padding: 12px 16px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    color: var(--txt-disable);
+    text-align: center;
+}

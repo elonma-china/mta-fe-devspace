@@ -1,0 +1,198 @@
+/* src/features/documents/pages/UnitRepository.css
+   Story 82 + 93: a regular user's read-only view of their own unit's document
+   repository. Story 93 redesigns it to the design (Figma 1088-24989) and reuses
+   the admin "Quản lý kho tài liệu" presentation: top bar + search/filter toolbar
+   + content card + paginated table. NO admin chrome (upload/edit/delete/groups). */
+
+.unit-repo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  box-sizing: border-box;
+  gap: 12px;
+  /* Story 119: no horizontal page-root padding — content sits flush at the shell
+     edge like Chat/admin (top gap only), so switching screens doesn't shift it. */
+  padding: var(--space-md) 0 0;
+}
+
+/* Top bar: back to the notes/chat screen + unit-named title. */
+.unit-repo__topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.unit-repo__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border-neutral-secondary, #e3e3e3);
+  border-radius: 100px;
+  background: var(--bg-secondary, #fff);
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--txt-neutral-primary, #1a1a1a);
+  cursor: pointer;
+}
+
+.unit-repo__back svg {
+  width: 16px;
+  height: 16px;
+}
+
+.unit-repo__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--txt-neutral-primary, #1a1a1a);
+}
+
+/* Content card (white rounded) wrapping the toolbar + table. */
+.unit-repo__card {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 12px;
+  /* Story 125: borderless (box-shadow only). */
+  border-radius: var(--card-radius);
+  background: var(--bg-secondary, #fff);
+  padding: var(--card-padding);
+  box-shadow: var(--card-shadow);
+}
+
+/* Search / filter toolbar (story 93). */
+.unit-repo__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  /* Story 123: divider under the toolbar (card header) → the list sits below a
+     line, matching the Chat panel-header pattern. */
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--border-neutral-primary);
+}
+
+.unit-repo__toolbar .searchbar,
+.unit-repo__toolbar > :first-child {
+  flex: 1 1 auto;
+  min-width: 160px;
+}
+
+/* Story 124: toolbar controls to the 44px Chat proportion (search 56→44,
+   lookup 48→44). SCOPED — base SearchBar/MultiSelectDropdown unchanged. */
+.unit-repo__toolbar .searchbar,
+.unit-repo__toolbar .searchbar .searchbar__input,
+.unit-repo__toolbar .searchbar .searchbar__icon {
+  height: 44px;
+}
+
+.unit-repo__toolbar .ms-dropdown__trigger {
+  height: 44px;
+}
+
+/* Sortable column header ("Ngày tải lên ↕") — looks like a header, acts as a button. */
+.unit-repo__sort {
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Story 127 (vế B): the page-size lookup was a NATIVE <select> (browser arrow +
+   box) sitting inline in the footer — inconsistent with the app's lookup language
+   (`.ms-dropdown`) and baseline-misaligned ("vỡ khung"). Restyle it (scoped to
+   this screen): strip the native chrome + draw our own chevron + pill/Inter token
+   so it matches the design. Keep --txt-neutral-primary (dark-mode aware). */
+.unit-repo__pagesize select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  border: 1px solid var(--border-neutral-secondary, #e3e3e3);
+  border-radius: 100px;
+  background-color: var(--bg-secondary, #fff);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23141414' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px 16px;
+  padding: 8px 36px 8px 14px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--txt-neutral-primary, #1a1a1a);
+  cursor: pointer;
+}
+
+/* Dark mode: the chevron is a background SVG (fixed fill), so swap it for a light
+   one — matching the token-driven text color that flips in `.dark`. */
+.dark .unit-repo__pagesize select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23FFFFFF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+}
+
+/* Story 127 (vế B): center the page-size lookup with the "Tổng cộng …" total in
+   the footer (the shared `.footer-text` is a plain block → the select dropped to
+   baseline). Scoped to `.unit-repo` so the other list screens' footers are
+   untouched. */
+.unit-repo .data-table-footer .footer-text {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm, 8px);
+}
+
+/* Story 116 #3: column headers bold + dark like the design — SCOPED to this
+   screen only (the shared .data-table th uses a muted --txt-disable gray; we
+   don't touch it so the admin tables are unaffected). */
+.unit-repo .data-table thead th {
+  color: var(--txt-neutral-primary, #1a1a1a);
+  font-weight: 700;
+}
+
+/* Story 116 #4: enlarge the search magnifier so it reads balanced against the
+   toolbar — SCOPED to this screen (shared default is 24px). */
+.unit-repo__toolbar .searchbar__icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* Split (list ↔ in-place viewer) — mirrors .dm-split (story 40/64). */
+.unit-repo__split {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  gap: var(--space-md, 16px);
+}
+
+.unit-repo__list {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+.unit-repo__viewer {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  /* Story 125: borderless (box-shadow only). */
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+}
+
+/* Story 82/56: rows for documents this user has NOT read yet → brand-teal +
+   semibold (same treatment as the admin .dm-row--unread, Figma 1088-24989).
+   Cleared once the doc is opened (markRead). */
+.data-table tr.unit-repo__row--unread td {
+  color: var(--brand-primary, #226355);
+  font-weight: 600;
+}

@@ -1,0 +1,31 @@
+/* src/features/analysis/components/CitationCard.css */
+.cc-card {
+  display: flex; flex-direction: column;
+  width: min(760px, calc(100vw - 32px));
+  height: min(78vh, 720px);
+  background: var(--bg-neutral-primary, #fff);
+  border-radius: 12px; padding: 14px 16px 16px;
+  outline: none;
+}
+.cc-header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; margin-bottom: 10px;
+}
+.cc-title {
+  margin: 0; font-size: 15px; font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cc-page { font-weight: 400; opacity: 0.75; }
+.cc-close { background: none; border: 0; cursor: pointer; font-size: 15px; }
+.cc-body {
+  flex: 1; min-height: 0; display: flex; flex-direction: column;
+  overflow: auto;
+}
+.cc-body .fov-cite-host { height: 100%; }
+.cc-body .dv-file-frame { min-height: 0; height: 100%; border: 0; width: 100%; }
+.cc-error { padding: 16px; font-size: 14px; }
+.cc-quote {
+  margin: 12px 0 0; padding: 8px 12px;
+  background: #ffe94d; color: #3a3000; border-radius: 8px;
+}
+.dark .cc-quote { background: #b3a125; color: #1c1800; }

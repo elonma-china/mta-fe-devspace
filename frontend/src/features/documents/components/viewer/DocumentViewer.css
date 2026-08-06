@@ -1,0 +1,251 @@
+/* src/features/documents/components/viewer/DocumentViewer.css */
+
+.doc-viewer {
+  display: flex;
+  flex-direction: column;
+  /* Story 53: fill the host BOTH ways. The chat host (.analysis-panel) is a
+     flex-column so it already stretched the width; the admin host (.dm-viewer)
+     is a flex-ROW, where the viewer is a main-axis item with no flex-grow and
+     collapsed to its content width (a thin strip). width:100% makes it fill the
+     pane in either layout. */
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  background: var(--bg-neutral-primary, #fff);
+}
+
+/* Story 37: title block sits BELOW the tab row (Figma). File name is the
+   prominent line; "n/N trang" is a muted sub-line right under it. */
+.dv-titlebar {
+  padding: var(--space-sm, 8px) var(--space-md, 16px);
+  border-bottom: 1px solid var(--border-neutral-secondary, #e3e3e3);
+}
+
+.dv-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--txt-neutral-primary, #1a1a1a);
+}
+
+.dv-close {
+  /* Story 63: pin ✕ to the RIGHT of the header row for EVERY file type. For PDF
+     the two .dv-tab (flex:1) already push it right; non-PDF has no tabs so it
+     fell to the left — margin-left:auto keeps it right in both cases. */
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--txt-neutral-secondary, #666);
+  flex-shrink: 0;
+}
+
+.dv-close:hover {
+  background: var(--bg-neutral-hover, rgba(0, 0, 0, 0.05));
+}
+
+.dv-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.dv-tabs {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border-neutral-secondary, #e3e3e3);
+}
+
+/* Story 37: the two tabs split the row evenly (50/50), centered labels — not
+   packed to one side. The close button keeps its natural width on the right. */
+.dv-tab {
+  flex: 1 1 0;
+  padding: var(--space-sm, 8px) 0;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 13px;
+  text-align: center;
+  cursor: pointer;
+  color: var(--txt-neutral-secondary, #666);
+}
+
+.dv-tab.is-active {
+  color: var(--accent-primary, #0f7b5a);
+  border-bottom-color: var(--accent-primary, #0f7b5a);
+  font-weight: 600;
+}
+
+/* Story 37: page count is a muted sub-line under the file name (was a separate
+   accent-colored row). */
+.dv-pagecount {
+  font-size: 13px;
+  color: var(--txt-neutral-secondary, #666);
+  margin-top: 2px;
+}
+
+.dv-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Story 51: content area fills the body. The custom thumbnail rail (.dv-rail /
+   .dv-thumb*) was removed — PDFs use the PDF.js library's own thumbnail sidebar
+   (PdfDocView), other kinds show none. */
+.dv-content {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+}
+
+.dv-main {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: var(--space-md, 16px);
+}
+
+/* Story 52: PDF iframe wrapper — fills the content area and resizes with the
+   pane (no padding/scroll of its own; the browser PDF viewer handles scroll). */
+.dv-pdf-wrap {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+}
+
+/* Story 128: the directive-review merge wrapped the PDF iframe in
+   `.fov-cite-host` (for the citation ribbon). Inside this flex-ROW host that
+   wrapper — with no flex/width of its own — collapsed to the iframe's intrinsic
+   ~300px, shrinking the "File gốc" PDF to a thin strip. Make it fill the row so
+   the iframe's width:100% resolves against the full pane. Scoped to the PDF host
+   only — the base `.fov-cite-host` rule (non-PDF `.dv-main`, CitationCard
+   `.cc-body`) is untouched. */
+.dv-pdf-wrap > .fov-cite-host {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Story 51: themed vertical scrollbar for the viewer's scroll areas (digitized
+   text + non-PDF original), matching the app theme (brand thumb, faint track). */
+.dv-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--brand-primary, #226355) transparent;
+}
+
+.dv-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dv-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dv-scroll::-webkit-scrollbar-thumb {
+  background: var(--brand-primary, #226355);
+  border-radius: 8px;
+}
+
+.dv-page-image {
+  display: block;
+  max-width: 100%;
+  margin: 0 auto;
+  border: 1px solid var(--border-neutral-secondary, #e3e3e3);
+}
+
+/* Story 22/52: original PDF rendered in the browser iframe viewer. Fills its
+   wrapper (.dv-pdf-wrap) and resizes with the pane — no fixed min-height (that
+   left the PDF "stuck" in a narrow pane). */
+.dv-file-frame {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: none;
+}
+
+.dv-page-text {
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  color: var(--txt-neutral-primary, #1a1a1a);
+}
+
+/* Story 25: digitized tab shows every page in one scrollable column. */
+.dv-digitized {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md, 16px);
+}
+
+.dv-page-section {
+  scroll-margin-top: var(--space-sm, 8px);
+}
+
+.dv-page-section + .dv-page-section {
+  border-top: 1px dashed var(--border-neutral-secondary, #e3e3e3);
+  padding-top: var(--space-md, 16px);
+}
+
+/* Story 110: highlight the cited content on the focused page. Standard light
+   "highlighter" yellow with dark text (WCAG-legible). */
+.dv-hl {
+  background: #fde68a; /* amber-200 */
+  color: #1f2937; /* slate-800 — high contrast on amber */
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* Tier B — tint the whole focused page (citation ≈ whole page, or a table that
+   doesn't match line-by-line) with a soft amber wash + accent bar. */
+.dv-page-section--focused {
+  background: #fffbeb; /* amber-50 */
+  border-left: 3px solid #f0c000;
+  padding-left: var(--space-sm, 8px);
+  border-radius: 2px;
+}
+
+.dv-page-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-primary, #0f7b5a);
+  margin-bottom: var(--space-xs, 4px);
+}
+
+.dv-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm, 8px);
+  padding: var(--space-xl, 32px) var(--space-lg, 20px);
+  text-align: center;
+  font-size: 14px;
+  color: var(--txt-neutral-secondary, #666);
+}
+
+.dv-error {
+  color: var(--status-error-text, #d93025);
+}
+
+.dv-fallback {
+  color: var(--txt-neutral-secondary, #666);
+}

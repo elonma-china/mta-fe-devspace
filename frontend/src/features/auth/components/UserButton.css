@@ -1,0 +1,78 @@
+:root {
+  /* Size lives in CSS now (48px default) */
+  --avatar-size: 48px;
+
+  /* Colors (match your Figma defaults) */
+  --avatar-bg: #45B441;     /* circle fill */
+  --avatar-text: #ffffff;   /* initials */
+}
+
+/* Unstyled clickable wrapper */
+.user-btn {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  isolation: isolate;
+}
+
+.user-btn:focus-visible {
+  outline: 2px solid var(--border-secondary);
+  outline-offset: 2px;
+}
+
+/* Avatar root */
+.avatar {
+  position: relative;
+  width: var(--avatar-size);
+  height: var(--avatar-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Circular container */
+.avatar-container {
+  width: 100%;
+  height: 100%;
+  background: var(--avatar-bg);
+  border-radius: 1000px;
+  display: flex;
+  align-items: center;      /* vertical center */
+  justify-content: center;  /* horizontal center */
+  overflow: hidden;
+}
+
+.avatar-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Initials */
+.avatar-label {
+  width: 100%;
+  text-align: center;
+  color: var(--avatar-text);
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans";
+  font-weight: 500;
+  font-size: calc(var(--avatar-size) * 0.333);  /* ≈16px @ 48px */
+  letter-spacing: -0.02em;
+  user-select: none;
+}
+
+@media (max-width:768px) {
+    .user-btn {
+      width: 40px;
+      height: 40px;
+    }
+    
+    .avatar-container {
+      width: 40px;
+      height: 40px;
+    }
+}

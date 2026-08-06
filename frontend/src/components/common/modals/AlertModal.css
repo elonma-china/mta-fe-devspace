@@ -1,0 +1,16 @@
+/* src/components/common/modals/AlertModal.css */
+
+.modal-content-body {
+  padding: var(--space-sm) 0;
+}
+
+.modal-text-message {
+  margin: 0;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.02em;
+  color: var(--txt-neutral-primary);
+  word-break: break-word; /* Prevents long names from overflowing */
+  white-space: pre-line;
+}

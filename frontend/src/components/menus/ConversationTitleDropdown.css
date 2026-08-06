@@ -1,0 +1,169 @@
+/* === Title dropdown pill (Frame 53) === */
+.title-dropdown {
+  position: relative;
+  max-width: 100%;
+}
+
+/* Button (the pill) */
+.title-dropdown-btn {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 8px 12px;
+  gap: 12px;
+
+  height: 44px;
+  max-width: 100%;
+  background: var(--bg-primary);
+  /* per spec */
+  border-radius: 100px;
+  /* pill */
+  border: none;
+  outline: none;
+  cursor: pointer;
+  box-sizing: border-box;
+
+  width: 100%;
+  /* fill the title area */
+  max-width: 100%;
+  /* don't overflow it */
+  min-width: 0;
+  /* allow shrinking */
+
+  /* optional: subtle shadow on hover/focus */
+  transition: box-shadow 0.15s, background 0.15s;
+}
+
+/* Left label (H3/medium 20/28, -0.03em) */
+.title-dropdown-label {
+  font-family: 'Inter', sans-serif;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 28px;
+  letter-spacing: -0.03em;
+  color: var(--txt-neutral-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Right chevron holder (24x24) */
+.title-dropdown-chevron {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  color: var(--content-neutral-strong);
+}
+
+.title-dropdown-btn[aria-expanded="true"] .title-dropdown-chevron {
+  transform: rotate(180deg);
+  transition: transform 0.15s;
+}
+
+/* Menu */
+.title-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+
+  display: none;
+  width: 500px;
+  max-width: 90vw;
+
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 12px;
+  z-index: 5;
+  box-sizing: border-box;
+}
+
+.title-menu.open {
+  display: block;
+}
+
+.title-menu .searchbar {
+  max-width: 476px !important;
+  height: 48px !important;
+  border-radius: 24px !important;
+  margin-top: 12px;
+  margin-bottom: 12px;
+
+  position: sticky;
+  padding-top: 0;
+}
+
+.title-menu-scroll {
+  max-height: min(60vh, 360px);
+  /* adjust to taste */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: 16px;
+}
+
+/* Menu item */
+.title-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  user-select: none;
+  white-space: nowrap;
+  font-weight: 450;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -2%;
+  vertical-align: middle;
+  color: var(--txt-neutral-primary);
+  transition: background 0.15s;
+}
+
+.title-menu-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.title-menu-icon-delete {
+  display: none;
+  padding-left: 16px;
+  width: 40px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  color: var(--content-neutral-strong);
+  cursor: pointer;
+}
+
+.title-menu-item:hover {
+  background: rgba(127, 127, 127, 0.08);
+  border-radius: 10px;
+}
+
+.title-menu-item:hover .title-menu-icon-delete {
+  display: inline-flex;
+}
+
+/* If you want a fixed width similar to Figma's 500px pill: */
+@media (min-width: 1024px) {
+  .title-dropdown-btn {
+    width: min(500px, 100%);
+  }
+}
+
+@media (max-width: 375px) {
+  .title-menu-scroll {
+    height: 275px;
+  }
+
+  .title-menu {
+    width: 295px;
+  }
+}

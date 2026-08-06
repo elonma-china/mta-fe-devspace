@@ -1,0 +1,223 @@
+/* src/components/common/DataTable.css */
+.data-table-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.data-table-wrapper {
+  flex-grow: 1;
+  width: 100%;
+  overflow-y: auto;
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 14px;
+}
+
+.data-table thead th {
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--txt-disable, #999);
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-neutral-primary, #e0e0e0);
+  background: var(--bg-secondary, #fff);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.data-table tbody td {
+  padding: 10px 12px;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--txt-neutral-primary, #333);
+  border-bottom: 1px solid var(--border-neutral-primary, #e0e0e0);
+  word-break: break-word;
+}
+
+.data-table tbody td svg {
+  margin-right: 12px;
+  cursor: pointer;
+}
+
+/* Story 39: clickable rows (repo viewer) — hover + active highlight. Only
+   applies when the consumer passes onRowClick/activeRowId. */
+.data-table tbody tr[style*="cursor"]:hover td {
+  background: var(--bg-neutral-hover, rgba(0, 0, 0, 0.03));
+}
+
+.data-table tbody tr.is-active-row td {
+  background: var(--bg-brand-subtle, rgba(15, 123, 90, 0.08));
+}
+
+.data-table-msg {
+  text-align: center;
+  padding: 32px !important;
+  color: var(--txt-disable, #999);
+}
+
+.data-table-msg.error {
+  color: var(--danger-color, #dc3545);
+}
+
+/* ===== Footer (Figma-like) ===== */
+.data-table-footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  padding: 16px 8px 16px 8px;
+  flex-shrink: 0;
+}
+
+.data-table-footer .footer-text {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 450;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.02em;
+  color: var(--txt-neutral-tertiary, #666);
+}
+
+@media (max-width: 768px) {
+  .data-table-footer .footer-text {
+    font-size: 10px;
+    line-height: 12px;
+  }
+}
+
+/* Pagination cluster */
+.pagination {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: 40px;
+}
+
+.icon-btn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 1000px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.icon-btn:disabled {
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+.icon-btn:disabled .icon-svg {
+  color: #8C8C8C;
+}
+
+.icon-svg {
+  color: #226355;
+  width: 20px;
+  height: 20px;
+  margin: auto;
+}
+
+.pagination__pages {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  height: 40px;
+}
+
+.page {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  border-radius: 1000px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  color: #226355;
+}
+
+.page:hover:not(.page--ellipsis) {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.page--active {
+  background: #D6F2E8;
+  font-weight: 600;
+}
+
+.page--ellipsis {
+  cursor: default;
+  min-width: unset;
+  width: auto;
+  padding: 0 4px;
+}
+
+@media (max-width: 768px) {
+
+  .page {
+    height: 20px;
+    width: 20px;
+    min-width: 20px;
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .mobile-pagination {
+    flex-direction: column;
+    justify-content: center;
+    height: auto;
+    gap: 16px;
+    padding-bottom: 16px;
+  }
+
+  .mobile-pagination .footer-text {
+    font-size: 14px;
+    line-height: 20px;
+    text-align: left;
+    width: 100%;
+  }
+
+  .pagination {
+    width: 100%;
+    justify-content: center;
+    height: 20px;
+  }
+
+  .data-table-footer {
+    padding: 0;
+  }
+}

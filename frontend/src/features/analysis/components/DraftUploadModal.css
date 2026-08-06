@@ -1,0 +1,32 @@
+/* src/features/analysis/components/DraftUploadModal.css */
+.du-modal {
+  width: min(480px, calc(100vw - 32px));
+  background: var(--bg-neutral-primary);
+  border-radius: 12px;
+  padding: 20px;
+  outline: none;
+}
+.du-header { display: flex; align-items: center; justify-content: space-between; }
+.du-title { margin: 0; font-size: 18px; font-weight: 600; }
+.du-close { background: none; border: 0; cursor: pointer; font-size: 16px; }
+.du-limit {
+  display: flex; justify-content: space-between;
+  margin: 12px 0; padding: 8px 12px;
+  background: var(--bg-neutral-secondary); border-radius: 8px; font-size: 13px;
+}
+.du-section-label { margin-bottom: 8px; font-size: 13px; font-weight: 500; }
+.du-drop {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 24px; cursor: pointer; text-align: center;
+  border: 1px dashed var(--border-secondary); border-radius: 10px;
+}
+.du-drop:hover { border-color: var(--border-primary); }
+.du-drop-text { font-size: 14px; word-break: break-all; }
+.du-input { display: none; }
+.du-error { margin-top: 8px; color: #dc2626; font-size: 13px; }
+.du-submit {
+  width: 100%; margin-top: 16px; padding: 10px;
+  background: var(--border-primary); color: #fff;
+  border: 0; border-radius: 8px; font-size: 14px; cursor: pointer;
+}
+.du-submit:disabled { opacity: 0.5; cursor: not-allowed; }

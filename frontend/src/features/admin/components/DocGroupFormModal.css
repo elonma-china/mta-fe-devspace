@@ -1,0 +1,94 @@
+/* src/features/admin/components/DocGroupFormModal.css */
+
+.dgm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dgm-dialog {
+  position: relative;
+  width: min(480px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  padding: 24px;
+}
+
+.dgm-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 0;
+}
+
+.dgm-header {
+  margin-bottom: 16px;
+}
+
+.dgm-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.dgm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dgm-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #344054;
+}
+
+.dgm-input {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  padding: 0 12px;
+}
+
+.dgm-input input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 10px 0;
+  font-size: 14px;
+  background: transparent;
+}
+
+.dgm-footer {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.dgm-primary {
+  background: #1c5b4c;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 28px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dgm-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

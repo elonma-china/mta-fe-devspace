@@ -1,0 +1,121 @@
+/* Container */
+.user-menu {
+  box-sizing: border-box;
+  position: absolute;
+  top: calc(100% + 8px);
+  /* drop below the button */
+  z-index: 1000;
+
+  width: 220px;
+  min-height: 104px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  text-align: left;
+
+  padding: 8px;
+  gap: 8px;
+
+  background: var(--bg-primary);
+  border: 1px solid var(--border-secondary);
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.07);
+  border-radius: 12px;
+}
+
+/* Alignment relative to the button wrapper */
+.user-menu.align-right {
+  right: 0;
+}
+
+.user-menu.align-left {
+  left: 0;
+}
+
+/* Each row */
+.um-item {
+  /* layout */
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  text-align: left;
+  gap: 12px;
+
+  width: 100%;
+  height: 40px;
+  padding: 8px 12px;
+
+  border: none;
+  outline: none;
+  background: transparent;
+  border-radius: 12px;
+
+  cursor: pointer;
+
+  /* text */
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 24px;
+  /* 150% */
+  letter-spacing: -0.02em;
+
+  color: var(--txt-neutral-tertiary);
+  /* default row color */
+}
+
+.um-item.danger {
+  color: var(--txt-neutral-primary);
+  /* design shows darker text for logout row */
+}
+
+.um-item--disabled {
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
+}
+
+/* Icon */
+.um-icon {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 24px;
+}
+
+.um-svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+  fill: currentColor;
+  /* inherits text color */
+}
+
+/* Text */
+.um-text {
+  text-align: left;
+  min-width: 0;
+}
+
+/* Optional: wrapper to anchor the menu.
+   Use this on the container that holds the UserButton and UserMenu. */
+.user-menu-wrap {
+  position: relative;
+  /* important so .user-menu can absolutely position */
+  display: inline-flex;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .user-menu {
+    top: calc(100% + 8px);
+  }
+
+  .um-item-audit {
+    display: none;
+  }
+}

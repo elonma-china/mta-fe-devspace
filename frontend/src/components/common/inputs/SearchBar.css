@@ -1,0 +1,96 @@
+/* src/components/common/inputs/SearchBar.css */
+
+/* Search bar pill container */
+.searchbar {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+
+  /* Keeping your original specific height and pill shape */
+  height: 56px;
+  background: var(--bg-primary);
+  /* Your original light green/mint */
+  border-radius: 28px;
+
+  /* REFACTORED: Flexible width instead of fixed 420px/720px constraints */
+  flex: 1;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.searchbar__input {
+  outline: none;
+  border: none;
+  background: transparent;
+  height: 56px;
+  width: 100%;
+
+  /* Keeping your original padding */
+  padding: 0 48px 0 20px;
+
+  font-family: Inter, system-ui, sans-serif;
+  font-weight: 450;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.02em;
+  color: var(--txt-neutral-primary);
+}
+
+.searchbar__input::placeholder {
+  color: var(--txt-disable);
+}
+
+/* Icon remains absolute and right-aligned */
+.searchbar__icon {
+  position: absolute;
+  right: 12px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  user-select: none;
+  color: var(--brand-primary);
+  /* Ensures icon matches your brand green */
+}
+
+.searchbar__icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Story 116: opt-in leading 3-line (hamburger) glyph, display-only. Only present
+   when the consumer passes showMenuIcon → zero effect on other consumers. */
+.searchbar__menu-icon {
+  position: absolute;
+  left: 12px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  user-select: none;
+  color: var(--txt-neutral-secondary);
+}
+
+.searchbar__menu-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* Reserve room on the left for the menu glyph only when it is shown. */
+.searchbar--with-menu .searchbar__input {
+  padding-left: 44px;
+}
+
+@media (max-width: 768px) {
+  .searchbar {
+    height: 48px;
+  }
+}

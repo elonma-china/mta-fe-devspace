@@ -1,0 +1,13 @@
+fastapi==0.115.12
+uvicorn[standard]==0.34.3
+asyncpg==0.30.0
+sqlalchemy[asyncio]==2.0.36
+pydantic-settings==2.9.1
+python-multipart==0.0.20
+PyJWT==2.10.1
+bcrypt==4.3.0
+httpx==0.28.1
+motor==3.7.0
+# Bug 1: subscribe to the ingest service's document-status pub/sub so a
+# terminal status is persisted even with no browser open (app/services/status_listener.py).
+redis==5.2.1
