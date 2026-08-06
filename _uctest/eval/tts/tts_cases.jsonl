@@ -1,0 +1,35 @@
+{"id": "T01", "group": "base", "language": "vi", "text": "Xin chào các đồng chí."}
+{"id": "T02", "group": "base", "language": "vi", "text": "Hôm nay đơn vị tổ chức sơ kết công tác sáu tháng đầu năm và triển khai nhiệm vụ trọng tâm cho giai đoạn tiếp theo."}
+{"id": "T03", "group": "base", "language": "vi", "text": "Trong bối cảnh chuyển đổi số diễn ra sâu rộng, việc bảo đảm an toàn thông tin không còn là nhiệm vụ riêng của bộ phận kỹ thuật mà đã trở thành trách nhiệm thường xuyên của từng cán bộ, chiến sĩ trong mọi hoạt động công tác hằng ngày, từ soạn thảo văn bản cho đến trao đổi thông tin trên các hệ thống dùng chung."}
+{"id": "T04", "group": "base", "language": "en", "text": "Good morning everyone."}
+{"id": "T05", "group": "base", "language": "en", "text": "The security operations team completed the quarterly review and briefed leadership on the main findings this afternoon."}
+{"id": "T06", "group": "num", "language": "vi", "text": "Đơn vị đã tiếp nhận 2.480 văn bản đến và phát hành 1.315 văn bản đi."}
+{"id": "T07", "group": "num", "language": "vi", "text": "Tỉ lệ số hoá đạt 92%, tăng 11% so với cùng kỳ; kiểm tra ba tiếng nổ đạt 41,5% giỏi và 38,2% khá."}
+{"id": "T08", "group": "num", "language": "vi", "text": "Tổng kinh phí giai đoạn một là 4,2 tỷ đồng, đã giải ngân 1,42 tỷ đồng, đạt 94,7%."}
+{"id": "T09", "group": "num", "language": "vi", "text": "Giờ ăn sáng chuyển từ 6 giờ 30 sang 6 giờ 00 kể từ ngày 15/8."}
+{"id": "T10", "group": "num", "language": "vi", "text": "Quyết định số 285/QĐ ban hành ngày 14/5 có hiệu lực sau 45 ngày."}
+{"id": "T11", "group": "num", "language": "en", "text": "The team handled 1,204 alerts in the third quarter, and mean time to detect dropped from 9.5 hours to 6.2 hours."}
+{"id": "T12", "group": "abbr", "language": "vi", "text": "Bộ phận CNTT phối hợp với cán bộ ATTT kiểm tra toàn bộ máy trạm."}
+{"id": "T13", "group": "abbr", "language": "vi", "text": "USB cá nhân bị cấm tuyệt đối; chỉ dùng USB do đơn vị cấp phát."}
+{"id": "T14", "group": "abbr", "language": "vi", "text": "Đoàn công tác xuất phát từ TP.HCM ra Hà Nội dự hội nghị."}
+{"id": "T15", "group": "abbr", "language": "en", "text": "MFA coverage reached 97% of accounts, and the CIO approved the new SOC budget."}
+{"id": "T16", "group": "name", "language": "vi", "text": "Đồng chí Phạm Trường Sơn và đồng chí Nguyễn Thị Hồng Nhung phụ trách lớp tập huấn tại Thái Nguyên."}
+{"id": "T17", "group": "name", "language": "vi", "text": "Hệ thống chạy trên Windows, dữ liệu trao đổi nội bộ không dùng Zalo hay Facebook."}
+{"id": "T18", "group": "punc", "language": "vi", "text": "Kết quả này có ý nghĩa gì? Rất đáng ghi nhận! Tuy nhiên — và đây là điểm mấu chốt — chúng ta không được chủ quan."}
+{"id": "T19", "group": "punc", "language": "vi", "text": "Ba nhiệm vụ trọng tâm gồm: một, chuẩn hoá dữ liệu; hai, đào tạo cán bộ; ba, hoàn thiện quy chế (trình phê duyệt trong quý hai)."}
+{"id": "T20", "group": "edge", "language": "vi", "text": "Rõ."}
+{"id": "T21", "group": "edge", "language": "vi", "text": "Ký tự đặc biệt @ # % và biểu tượng 😀 nằm giữa câu vẫn phải đọc trôi."}
+{"id": "T22", "group": "edge", "language": "vi", "text": "Nhanh hơn, nhanh hơn, nhanh hơn, nhanh hơn, nhanh hơn nữa."}
+{"id": "T23", "group": "edge", "language": "vi", "text": "Cuộc họp dùng laptop trình chiếu slide, sau đó gửi file qua hệ thống nội bộ."}
+{"id": "T24", "group": "edge", "language": "vi", "long_repeat_to_chars": 1990, "text": "Đây là câu kiểm tra giới hạn độ dài văn bản đầu vào của hệ thống tổng hợp tiếng nói, được lặp lại nhiều lần để tiến sát mức trần cho phép. "}
+{"id": "T25", "group": "speed", "language": "vi", "speed": 1.0, "text": "Tốc độ đọc là tham số người dùng điều chỉnh được trong khoảng cho phép."}
+{"id": "T26", "group": "speed", "language": "vi", "speed": 0.5, "text": "Tốc độ đọc là tham số người dùng điều chỉnh được trong khoảng cho phép."}
+{"id": "T27", "group": "speed", "language": "vi", "speed": 2.0, "text": "Tốc độ đọc là tham số người dùng điều chỉnh được trong khoảng cho phép."}
+{"id": "T28", "group": "stability", "language": "vi", "runs": 2, "text": "Câu này được tổng hợp hai lần để kiểm tra độ ổn định của hệ thống."}
+{"id": "T29", "group": "stability", "language": "en", "runs": 2, "text": "This sentence is synthesized twice to check the stability of the system."}
+{"id": "T30", "group": "num", "language": "vi", "text": "Chạy ba nghìn mét vượt 12% chỉ tiêu; quân số vắng dài ngày là 6 đồng chí, chiếm 1,1%."}
+{"id": "T31", "group": "base", "language": "vi", "text": "Podcast hôm nay điểm qua những nội dung chính của báo cáo, mời các bạn cùng theo dõi."}
+{"id": "T32", "group": "name", "language": "en", "text": "The migration to PostgreSQL and MongoDB finished ahead of schedule, according to Nguyen Van An."}
+{"id": "T33", "group": "punc", "language": "en", "text": "Did the backup succeed? Yes — but only after the second attempt, which is exactly the problem."}
+{"id": "T34", "group": "edge", "language": "en", "text": "Edge case with symbols @ # % and emoji 🚀 in the middle of a sentence."}
+{"id": "T35", "group": "abbr", "language": "vi", "text": "Báo cáo GDP quý ba và chỉ số CPI được trình bày trong phụ lục."}

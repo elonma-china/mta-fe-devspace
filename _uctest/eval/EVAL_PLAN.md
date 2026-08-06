@@ -1,5 +1,10 @@
 # Eval chất lượng podcast (Audio Overview) — hội đồng agent chấm chéo
 
+> Bộ eval gồm HAI phần: (1) **nội dung podcast** — file này; (2) **giọng đọc TTS** —
+> `tts/TTS_EVAL_PLAN.md` (đề 35 câu theo nhóm phát âm khó, máy đo tín hiệu audio,
+> 2 judge + verifier chấm độ-đọc-đúng, phiếu MOS tai người). Chạy phần TTS TRƯỚC:
+> giọng đọc hỏng thì điểm podcast không còn ý nghĩa.
+
 > UC (nhóm A-G) trả lời "chạy có đúng không". Bộ eval này trả lời **"tập podcast có
 > HAY và ĐÚNG không"** — bằng số đo khách quan + hội đồng nhiều agent độc lập chấm
 > chéo, có vòng verify đối kháng cho mọi cáo buộc bịa đặt.
