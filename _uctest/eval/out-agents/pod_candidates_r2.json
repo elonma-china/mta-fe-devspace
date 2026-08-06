@@ -1,0 +1,56 @@
+[
+ {
+  "case": "EV03",
+  "quote_transcript": "Those were isolated on September 12, and they've since been scheduled for decommissioning.",
+  "reason": "F4 chỉ nói cô lập; 'đã lên lịch thanh lý' là khuyến nghị tương lai (F11) bị đổi thành việc đã làm",
+  "severity": "minor"
+ },
+ {
+  "case": "EV04",
+  "quote_transcript": "đã giải ngân đạt 87% của tổng mức, nghĩa là khoảng 3,654 tỷ đồng",
+  "reason": "phép NHÂN 4,2×87% — luật chỉ cho tổng/hiệu",
+  "severity": "minor"
+ },
+ {
+  "case": "EV04",
+  "quote_transcript": "giai đoạn 2 khai thác dữ liệu và tối ưu quy trình",
+  "reason": "F1 không có 'tối ưu quy trình'",
+  "severity": "minor"
+ },
+ {
+  "case": "EV04",
+  "quote_transcript": "giúp người học tiếp cận nội dung linh hoạt hơn mà không phụ thuộc vào phiên bản giấy",
+  "reason": "đặc điểm của F9 gán nhầm sang kho học liệu F12",
+  "severity": "minor"
+ },
+ {
+  "case": "EV04",
+  "quote_transcript": "Quy chế này sẽ xác định rõ trách nhiệm từng bộ phận và cơ chế kiểm soát dữ liệu",
+  "reason": "F21 không nêu nội dung cụ thể",
+  "severity": "minor"
+ },
+ {
+  "case": "EV06",
+  "quote_transcript": "kết quả phân chia thành bốn phần: 41,5% đạt mức giỏi, 38,2% khá và 20,3% đạt yêu cầu cơ bản.",
+  "reason": "nguồn F3 chỉ có BA mức; 'bốn phần' sai số đếm",
+  "severity": "major"
+ },
+ {
+  "case": "EV08",
+  "quote_transcript": "Theo báo cáo, nguyên nhân rất cụ thể: cách tính lượt mượn gia hạn khác nhau",
+  "reason": "F5 chỉ nói 'có thể do' — nâng mức chắc chắn",
+  "severity": "minor"
+ },
+ {
+  "case": "EV08",
+  "quote_transcript": "Giờ cao điểm kéo dài hai tiếng, tức là từ 20 đến 22 giờ, nên mỗi phiên ở thời điểm này cũng khoảng 26 phút.",
+  "reason": "26 phút (F3, nguồn A, trung bình chung) bị gán riêng cho giờ cao điểm (F7, nguồn B)",
+  "severity": "major"
+ },
+ {
+  "case": "EV10",
+  "quote_transcript": "không có sự thay đổi nào về thời gian cũng như nội dung bữa ăn",
+  "reason": "F3 chỉ nói giữ nguyên GIỜ, không nói nội dung bữa ăn",
+  "severity": "minor"
+ }
+]

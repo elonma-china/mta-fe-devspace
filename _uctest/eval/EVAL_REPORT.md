@@ -1,5 +1,34 @@
 # Báo cáo eval podcast — 2026-08-07, ccoex (9 case text; EV09 chờ live BE)
 
+> **CẬP NHẬT — VÒNG 2 SAU FIX** (prompt `8b137c1` + `AUDIO_OVERVIEW_WPM=240`),
+> chấm bằng hội đồng agent HOÀN TOÀN MỚI + verifier đối kháng (9/9 cáo buộc mới
+> được thẩm tra):
+>
+> | Chỉ số | Vòng 1 (baseline) | Vòng 2 (sau fix) |
+> |---|---|---|
+> | Máy đo pass | 3/9 | **6/9** |
+> | Trung thực TB | 3.56 | **4.11** |
+> | Lỗi major xác nhận | 6+ (EV10 một mình 3) | **2** |
+> | Bao phủ TB | 4.67 | 4.89 |
+> | Hội thoại TB | 3.44 | 3.56 |
+> | Thời lượng audio / yêu cầu | 0.45–0.66 | **0.74–0.84** |
+> | PASS trọn mọi gate | 1/9 (EV06) | 2/9 (**EV02, EV07**) |
+>
+> **Từng bẫy chủ đích trước/sau**: EV10 bịa-lấp-thời-lượng **1→4** (không chế
+> fact mới, tự tính đúng "nửa tiếng", chấp nhận tập ngắn — đổi bằng lặp ý, mode
+> hỏng an toàn hơn); EV07 chế-nghĩa-viết-tắt **3→5** (giữ nguyên QLKT/TTTH/OTT);
+> EV02 **3→5** (hết "âm lịch"); EV08 nêu đúng 2 số + chênh 70 nhưng dính major
+> mới (gán "26 phút" của nguồn A cho giờ cao điểm nguồn B).
+>
+> **EV06 5→3 là bài học biến thiên giữa các lần sinh**: "bốn phần" trong khi
+> nguồn có 3 mức — cùng prompt, run khác, lỗi khác. Eval một lần = một mẫu; so
+> sánh xu hướng cần chạy lặp (đã có sẵn bộ đề để chạy N lần khi cần).
+>
+> **Việc còn mở cho vòng 3** (chưa làm): sàn nén EV05 (giữ 22/22 fact bất chấp
+> lệnh nén 1' → 3.82×; bản chất là bài chọn-lọc-fact, cần chỉ thị "được phép bỏ
+> fact chi tiết khi nén"); chống gán-chéo-nguồn (EV08); kết tập bị cụt khi chạm
+> ngân sách (EV03/EV07); roundtrip en 0.449 chờ tai người phân xử TTS-hay-STT.
+
 Pipeline đủ: sinh thật qua AI `:15001` (LLM staging `:8003`, TTS Piper, MinIO riêng)
 → máy đo khách quan → 3 judge độc lập 3 lăng kính → verifier đối kháng 17 cáo buộc.
 Giọng đọc TTS có báo cáo riêng: `tts/TTS_EVAL_REPORT.md`.
