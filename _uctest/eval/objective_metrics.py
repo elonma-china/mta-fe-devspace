@@ -122,8 +122,11 @@ def eval_case(cid: str, case: dict) -> dict | None:
     else:
         foreign = [w for w in ws if VN_DIACRITIC.search(w)]
     frac = len(foreign) / max(len(ws), 1)
+    # Report-only (ok=None): tiếng Việt có RẤT nhiều âm tiết không dấu hợp lệ
+    # ("nghe", "giai", "chia", "khai"…) nên heuristic dấu-câu đếm oan — lần chạy
+    # 2026-08-07 flag toàn từ Việt thật. Thuần ngữ là việc của judge hội thoại.
     checks["language_purity"] = {
-        "value": round(frac, 3), "sample": foreign[:8], "ok": frac < FOREIGN_MAX,
+        "value": round(frac, 3), "sample": foreign[:8], "ok": None,
     }
 
     # ── Số liệu không bịa (case nào cũng đo; EV06/EV08 là gate cứng) ─

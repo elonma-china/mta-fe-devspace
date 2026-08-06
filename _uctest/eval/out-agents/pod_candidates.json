@@ -1,0 +1,104 @@
+[
+ {
+  "case": "EV01",
+  "quote_transcript": "đơn vị đã số hoá tới chín mươi hai phần trăm văn bản đến",
+  "reason": "F2 nói 92% chung, không riêng 'văn bản đến'",
+  "severity": "minor"
+ },
+ {
+  "case": "EV01",
+  "quote_transcript": "nâng cấp phần mềm quản lý văn bản trước ngày ba mươi chín",
+  "reason": "F10 là 'trước 30/9'; đọc 'ba mươi chín' mất chữ tháng",
+  "severity": "minor"
+ },
+ {
+  "case": "EV02",
+  "quote_transcript": "khắc phục lỗi trùng số khi phát hành đồng thời trước ngày 30 tháng chín âm lịch",
+  "reason": "nguồn không nói 'âm lịch'",
+  "severity": "major"
+ },
+ {
+  "case": "EV02",
+  "quote_transcript": "trong vòng bốn mươi lăm ngày kể từ khi có yêu cầu",
+  "reason": "F11 không nêu mốc bắt đầu",
+  "severity": "minor"
+ },
+ {
+  "case": "EV04",
+  "quote_transcript": "qua giai đoạn một chúng ta đã xây dựng được nền tảng hạ tầng, chuẩn hóa dữ liệu",
+  "reason": "F8 nói GĐ1 dữ liệu KHÔNG thống nhất, chuẩn hoá là mục tiêu GĐ2 (F17)",
+  "severity": "major"
+ },
+ {
+  "case": "EV04",
+  "quote_transcript": "bổ sung nhân lực chuyên sâu để đảm bảo vận hành bền vững",
+  "reason": "F20 không nêu mục đích này",
+  "severity": "minor"
+ },
+ {
+  "case": "EV07",
+  "quote_transcript": "dán tem quản lý kỹ thuật",
+  "reason": "nguồn chỉ viết 'tem QLKT', không giải nghĩa — tự chế nghĩa viết tắt",
+  "severity": "major"
+ },
+ {
+  "case": "EV07",
+  "quote_transcript": "báo cáo thủ trưởng đơn vị để kịp thời khắc phục",
+  "reason": "F7 không có cụm mục đích",
+  "severity": "minor"
+ },
+ {
+  "case": "EV08",
+  "quote_transcript": "Chính xác, nguyên nhân chủ yếu là cách tính lượt mượn gia hạn.",
+  "reason": "F5 chỉ nói 'có thể do' — nâng hedge thành khẳng định",
+  "severity": "minor"
+ },
+ {
+  "case": "EV08",
+  "quote_transcript": "Khi một tài khoản gia hạn, hệ thống lại ghi nhận thêm một lượt mượn mới",
+  "reason": "cơ chế kỹ thuật nguồn không mô tả",
+  "severity": "minor"
+ },
+ {
+  "case": "EV08",
+  "quote_transcript": "nếu loại bỏ lượt gia hạn, hai số liệu sẽ gần như trùng khớp",
+  "reason": "kết luận định lượng không có trong nguồn",
+  "severity": "major"
+ },
+ {
+  "case": "EV10",
+  "quote_transcript": "bữa sáng sẽ sớm hơn hai mươi phút",
+  "reason": "6h30→6h00 là 30 phút (suy trực tiếp F1) — sai số",
+  "severity": "major"
+ },
+ {
+  "case": "EV10",
+  "quote_transcript": "đảm bảo người lính có đủ năng lượng khi bắt đầu... cường độ cao ngoài khu vực cơ sở",
+  "reason": "F2 chỉ nói phục vụ dã ngoại đợt 2",
+  "severity": "major"
+ },
+ {
+  "case": "EV10",
+  "quote_transcript": "giúp ổn định nhịp sinh hoạt chung... tránh gây lộn xộn hay mệt mỏi",
+  "reason": "F3 không có lý giải này",
+  "severity": "major"
+ },
+ {
+  "case": "EV10",
+  "quote_transcript": "đơn vị sẽ mở bếp và phân phát thực phẩm chính thức lúc 6 giờ 00",
+  "reason": "quy trình mở bếp không có trong nguồn",
+  "severity": "minor"
+ },
+ {
+  "case": "EV10",
+  "quote_transcript": "câu hỏi mà rất nhiều người đang thắc mắc",
+  "reason": "bịa phản ứng khán giả",
+  "severity": "minor"
+ },
+ {
+  "case": "EV10",
+  "quote_transcript": "nhằm đảm bảo sức khỏe và hiệu suất làm việc",
+  "reason": "lý do thật là dã ngoại đợt 2 (F2)",
+  "severity": "minor"
+ }
+]
