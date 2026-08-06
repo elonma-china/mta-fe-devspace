@@ -203,6 +203,12 @@ services:
       - AI_SERVICE_HOST=${AI_SERVICE_HOST:-http://ai-api:5001/api/v1}
       - AI_INGEST_HOST=${AI_INGEST_HOST:-http://be-api:5002/api/v1}
       - ZOMBIE_TASK_TIMEOUT_MS=${ZOMBIE_TASK_TIMEOUT_MS:-600000}
+      # Dev Space đọc kho tài liệu KHÔNG thuộc về nó. Bật cờ này là mọi lời
+      # gọi CÓ GHI lên ingest bị từ chối ngay trong helper — kể cả
+      # _delete_remote_document, cái sẽ xoá thật tài liệu khỏi index thật khi
+      # người dùng xoá hội thoại. Không bao giờ đặt true khi AI_INGEST_HOST
+      # trỏ vào BE của chính stack này.
+      - DEV_READONLY_CORPUS=${DEV_READONLY_CORPUS:-false}
       - UPLOAD_ALLOWED_EXTENSIONS=${UPLOAD_ALLOWED_EXTENSIONS:-.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.md,.png,.jpg,.jpeg}
       - LLM_API_KEY=${LLM_API_KEY}
       # Bug 1: nghe pub/sub trạng thái tài liệu của tier BE, để "Đang xử lý"
@@ -265,6 +271,12 @@ services:
       - REACT_APP_FILE_EXT=${REACT_APP_FILE_EXT:-.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.md,.png,.jpg,.jpeg}
       - REACT_APP_TOOL_PREFIX=/tools
       - REACT_APP_LLM_PREFIX=/llm
+      # Dev Space: "devspace" bật skin đỏ + logo DEV SPACE. Bỏ trống (mặc
+      # định) là bản IntraMind teal — cùng một image phục vụ cả hai.
+      - REACT_APP_BRAND=${REACT_APP_BRAND:-}
+      # Ẩn lối upload. Đây CHỈ là lớp UX — chốt chặn thật là
+      # DEV_READONLY_CORPUS của gateway; giữ hai giá trị này bằng nhau.
+      - REACT_APP_READONLY_CORPUS=${REACT_APP_READONLY_CORPUS:-false}
     depends_on:
       backend:
         condition: service_healthy

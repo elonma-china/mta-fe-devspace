@@ -19,10 +19,79 @@
 4. **Chặn ghi corpus** — `DEV_READONLY_CORPUS=true` khiến upload/xoá/xử-lý-lại tài liệu trả `403`.
    Kéo tài liệu thật vào hội thoại bằng **"Chọn từ kho"** (link-repository, không ghi upstream).
 
-### Micro cần secure context
+### ⚠️ Micro cần secure context
 
-`getUserMedia` chỉ chạy trên HTTPS hoặc `localhost`. Mở bằng IP trần sẽ **không có mic**.
-Cách dùng: `ssh -L 18001:localhost:18001 <vps>` rồi mở `http://localhost:18001`.
+`getUserMedia` chỉ chạy trên **HTTPS hoặc `localhost`**. Mở bằng IP trần → **không có mic**
+(nút sẽ mờ và báo lý do, không phải nút chết câm).
+
+```bash
+ssh -L 18001:localhost:18001 ccoex@100.108.33.98   # rồi mở http://localhost:18001
+```
+
+---
+
+## Triển khai trên ccoex
+
+Dev Space chạy **song song** stack thật trên cùng máy. Thứ tự bắt buộc:
+
+| # | Bước | Lệnh | Cổng |
+|---|---|---|---|
+| 1 | Cài đặt lần đầu (clone, venv, model, ffmpeg, `.env`) | `ops/devspace-bootstrap.sh` | — |
+| 2 | Dựng backend voice | `ops/devspace-up.sh` | AI `15001`, serving `15003`, redis `16379`, minio `19000` |
+| 3 | Dựng FE Dev Space | `PORT_OFFSET=10000 COMPOSE_PROJECT=devspace-fe ./deploy/02-up.sh` | FE `18001`, gateway `15050`, pg `15432`, mongo `37018` |
+| — | Gỡ sạch | `ops/devspace-down.sh` | — |
+
+`docker/.env` bắt buộc có:
+
+```ini
+REACT_APP_BRAND=devspace
+DEV_READONLY_CORPUS=true            # chốt chặn thật (gateway)
+REACT_APP_READONLY_CORPUS=true      # lớp UX (ẩn nút upload) — phải bằng dòng trên
+AI_SERVICE_HOST=http://host.docker.internal:15001/api/v1   # AI voice
+AI_INGEST_HOST=http://host.docker.internal:5002/api/v1     # BE thật, chỉ đọc
+JWT_SECRET=<openssl rand -hex 32>   # KHÔNG tái dùng secret của bản thật
+```
+
+### 3 luật an toàn (stack thật dùng chung máy)
+
+1. **Không bao giờ `pkill -f uvicorn`** — sẽ giết cả AI/BE/embedding thật. Kill **theo cổng**.
+2. **Không `apt install`** — một lần apt trên máy này đã nâng driver NVIDIA giữa chừng
+   và giết mọi container GPU mới. ffmpeg lấy bản static vào `~/devspace/bin`.
+3. **Không `git checkout`** trong `~/Desktop/intramind_staging` — đó là cây live và
+   checkout AI đang có việc chưa commit.
+
+**Redis + MinIO phải riêng, không thoả hiệp.** Celery của bản thật cùng tên app
+(`intramind_worker`), cùng broker db, và danh sách queue mặc định của worker
+**trùng 5 queue** với live → dùng chung broker là worker dev **ăn mất** summary/report
+của người dùng thật. `ENABLE_RERANKER=false` cũng là bắt buộc: card chỉ còn ~3.7 GB,
+nạp thêm một jina-v3 sẽ **OOM chính LLM trả lời của bản thật**.
+
+---
+
+## Bàn giao voice cho đội FE
+
+Skin nằm sau cổng `REACT_APP_BRAND` nên tách sạch được phần voice:
+
+```bash
+git diff 1814dd7..HEAD -- \
+  backend-fastapi/ \
+  frontend/src/utils/wavEncoder.js frontend/src/hooks/useVoiceRecorder.js \
+  frontend/src/features/chat/ frontend/src/features/analysis/ \
+  frontend/src/stores/useAudioOverviewStore.js \
+  > voice-rag-fe.patch
+```
+
+3 điều phải nói kèm patch:
+
+1. **Không gửi `startTime`** khi poll audio-overview. Tập xong **không có** field
+   `status`, mà `_apply_zombie_check` đọc body không có `status` là "kẹt" → quá
+   `ZOMBIE_TASK_TIMEOUT_MS` sẽ ghi đè thành `FAILURE`, **phá tập đã xong**. Trần chờ
+   chuyển sang phía client (`AUDIO_OVERVIEW_MAX_WAIT_MS`).
+2. **Mã hoá WAV trong trình duyệt**, đừng dùng `MediaRecorder`. Chrome cho ra
+   `webm/opus`, dịch vụ STT đẩy mọi thứ không phải WAV sang ffmpeg → `503` nếu máy
+   thiếu ffmpeg.
+3. **Episode đang nằm ở `localStorage`**, không phải `info_table`, vì CHECK constraint
+   `info_table_type_check` chỉ cho 4 type. Muốn đưa vào DB thì cần `migrate_011.sql`.
 
 ---
 
