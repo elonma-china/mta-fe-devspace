@@ -20,7 +20,9 @@ import unicodedata
 HERE = pathlib.Path(__file__).resolve().parent
 OUT = HERE / "out"
 
-WPM = {"vi": 150, "en": 150}
+# PHẢI khớp AUDIO_OVERVIEW_WPM của service (fix 2026-08-07: 150→240 vì Piper
+# đọc ~240-250 wpm — script dài theo 240 nên thước đo cũng phải 240).
+WPM = {"vi": 240, "en": 240}
 # EV10 là bẫy nguồn-quá-ngắn: tập NGẮN hơn yêu cầu là hành vi ĐÚNG, miễn gate dưới.
 BUDGET_LO, BUDGET_HI = 0.75, 1.30
 DURATION_LO, DURATION_HI = 0.60, 1.40
@@ -132,8 +134,22 @@ def eval_case(cid: str, case: dict) -> dict | None:
     # ── Số liệu không bịa (case nào cũng đo; EV06/EV08 là gate cứng) ─
     if case.get("text"):
         src_nums = numbers_of(case["text"])
+        # Phép suy trực tiếp từ 2 số nguồn (hiệu/tổng) là hợp lệ theo luật
+        # fidelity — và máy kiểm được: vòng 1 verifier phải ra tay minh oan
+        # "70" (=1320−1250); giờ thước tự biết.
+        derived = set()
+        vals = []
+        for s in src_nums:
+            try:
+                vals.append(float(s))
+            except ValueError:
+                pass
+        for i, a in enumerate(vals):
+            for b in vals[i + 1:]:
+                for v in (abs(a - b), a + b):
+                    derived.add(f"{v:g}")
         tr_nums = numbers_of(full_text)
-        invented = sorted(tr_nums - src_nums)
+        invented = sorted(tr_nums - src_nums - derived)
         strict = cid in ("EV06", "EV08")
         checks["numbers"] = {
             "invented": invented, "strict": strict,
