@@ -1,4 +1,32 @@
-# MTA FE IntraMind
+# DEV SPACE — bản thử nghiệm Voice RAG
+
+> ⚠️ **Đây KHÔNG phải bản thật.** Bản sao của `mta-fe-intramind@devops 8002093f`
+> (2026-07-31), đổi màu **đỏ** + logo **"DEV SPACE"**, ghép sẵn voice để dùng thử
+> trước khi đội FE tích hợp vào bản thật. Bản thật vẫn chạy ở `:8001`/`:5050`.
+
+| | Dev Space | Bản thật |
+|---|---|---|
+| Frontend | `:18001` | `:8001` |
+| Gateway | `:15050` | `:5050` |
+| AI | `:15001` (có voice) | `:5001` |
+| Corpus | **chỉ đọc** corpus thật | đọc–ghi |
+
+### Khác gì bản thật
+
+1. **Nút mic** trong ô chat → ghi âm → STT → điền chữ vào ô nhập (không tự gửi).
+2. **Tổng quan âm thanh** — sinh podcast 2 người dẫn từ tài liệu, có player + transcript + huỷ/xoá.
+3. **Màu đỏ + logo DEV SPACE** — bật bởi `REACT_APP_BRAND=devspace`; bỏ biến này là về teal IntraMind.
+4. **Chặn ghi corpus** — `DEV_READONLY_CORPUS=true` khiến upload/xoá/xử-lý-lại tài liệu trả `403`.
+   Kéo tài liệu thật vào hội thoại bằng **"Chọn từ kho"** (link-repository, không ghi upstream).
+
+### Micro cần secure context
+
+`getUserMedia` chỉ chạy trên HTTPS hoặc `localhost`. Mở bằng IP trần sẽ **không có mic**.
+Cách dùng: `ssh -L 18001:localhost:18001 <vps>` rồi mở `http://localhost:18001`.
+
+---
+
+## Kiến trúc gốc (kế thừa từ mta-fe-intramind)
 
 Tier người dùng của IntraMind: SPA React + Node proxy + gateway/BFF FastAPI
 (auth, RBAC, Postgres, Mongo). Là tier **cuối** trong thứ tự dựng
