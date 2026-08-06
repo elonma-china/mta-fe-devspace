@@ -12,7 +12,16 @@ from fastapi.responses import JSONResponse
 from app.config import settings
 from app.db import close_db, init_db
 from app.middlewares.logging import RequestLoggingMiddleware
-from app.routes import auth, audit, conversation, document, info_table, llm, user
+from app.routes import (
+    auth,
+    audit,
+    conversation,
+    document,
+    info_table,
+    llm,
+    user,
+    voice,
+)
 from app.services import status_listener
 
 logging.basicConfig(
@@ -91,3 +100,4 @@ app.include_router(document.router)
 app.include_router(info_table.router)
 app.include_router(audit.router)
 app.include_router(llm.router)
+app.include_router(voice.router)

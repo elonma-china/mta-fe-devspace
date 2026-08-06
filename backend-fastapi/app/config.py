@@ -62,6 +62,16 @@ class Settings(BaseSettings):
     ai_ingest_host: str = "http://localhost:5002/api/v1"
     llm_api_key: str | None = None
 
+    # Dev Space: this gateway reads a corpus it does not own. When true, every
+    # mutating call to the ingest service is refused at the helper that makes
+    # it, so no route — present or future — can write into that corpus.
+    #
+    # This is not a UI concern. `_delete_remote_document` issues a real
+    # DELETE /documents/{id} against the ingest service, so a Dev Space user
+    # deleting their own conversation would delete documents out of the live
+    # index. Hiding the button is bypassable; refusing the call is not.
+    dev_readonly_corpus: bool = False
+
     # Document status listener (bug 1). The ingest service publishes
     # "completed"/"failed" on Redis pub/sub the moment a document finishes; we
     # subscribe so the terminal status is persisted even when no browser is

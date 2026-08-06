@@ -53,6 +53,43 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+# ── Dev Space read-only corpus guard ────────────────────────────────
+# Dev Space points AI_INGEST_HOST at a corpus it does not own, so every
+# helper below that MUTATES that corpus calls this first. The guard lives
+# in the helpers, not only on the routes, because the helpers are where the
+# damage is: `_delete_remote_document` issues a real DELETE against the
+# ingest service, and a Dev Space user deleting a conversation would take
+# real documents out of the real index with it.
+#
+# Read helpers (`_fetch_remote_*`, `_read_remote_task_status`,
+# `_fetch_remote_status`) are deliberately NOT guarded — reading the corpus
+# is the whole point of Dev Space. So is `link_repository_documents`, which
+# attaches existing documents by reference and never calls upstream at all.
+
+
+def _assert_corpus_writable() -> None:
+    """Refuse a mutating upstream call when this gateway is read-only.
+
+    Raises:
+        HTTPException: 403 when ``DEV_READONLY_CORPUS`` is set.
+    """
+    if settings.dev_readonly_corpus:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=ErrorMessages.READONLY_CORPUS,
+        )
+
+
+async def forbid_readonly() -> None:
+    """Route dependency: fail a write route early, before the body is read.
+
+    The UX half of the guard. :func:`_assert_corpus_writable` is the half
+    that actually protects the corpus; this one exists so the user gets a
+    clean 403 instead of uploading 40 MB and then being refused.
+    """
+    _assert_corpus_writable()
+
+
 # ── Upstream helpers ────────────────────────────────────────────────
 
 async def _create_remote_document(
@@ -75,6 +112,7 @@ async def _create_remote_document(
     answer with a document that belongs to a different conversation — an id this
     gateway cannot store, because its own table is keyed on it.
     """
+    _assert_corpus_writable()
     params = {"user_id": str(owner_id)}
     if conversation_id is not None:
         params["conversation_id"] = str(conversation_id)
@@ -92,6 +130,7 @@ async def _process_remote_document(
     document_id: str, *, conversation_id: int | None = None
 ) -> dict:
     """Start processing on the AI ingest service."""
+    _assert_corpus_writable()
     params: dict = {}
     if conversation_id is not None:
         params["conversation_id"] = str(conversation_id)
@@ -117,7 +156,12 @@ async def _process_repo_document(
     as ``ERROR`` and NOT raised — the admin can replace the file to retry instead
     of the whole upload failing and leaving the doc stuck on ``PENDING``. Mirrors
     the chat ``process_document`` flow.
+
+    The read-only check is deliberately OUTSIDE the try: the except arm writes
+    ``ERROR`` onto the document row, and a Dev Space refusal is not a property
+    of the document.
     """
+    _assert_corpus_writable()
     try:
         processed = await _process_remote_document(
             document_id, conversation_id=conv_id
@@ -192,6 +236,7 @@ async def _preview_remote_document(document_id: str) -> dict:
     Returns:
         A dictionary containing the document preview data.
     """
+    _assert_corpus_writable()
     async with httpx.AsyncClient(
         timeout=600, follow_redirects=True
     ) as client:
@@ -274,7 +319,15 @@ async def _fetch_remote_page_image(
 
 
 async def _delete_remote_document(document_id: str) -> None:
-    """Delete from AI ingest service (404 = success)."""
+    """Delete from AI ingest service (404 = success).
+
+    Under ``DEV_READONLY_CORPUS`` this raises before any request is sent. The
+    chat delete route already wraps this call in ``try/except: pass``, so the
+    net effect there is exactly what Dev Space wants: the gateway's own row
+    goes away, the real document stays in the real index. The rollback call
+    sites are unreachable in read-only mode — their create is refused first.
+    """
+    _assert_corpus_writable()
     async with httpx.AsyncClient(timeout=60, follow_redirects=True) as client:
         resp = await client.delete(
             f"{settings.effective_ai_ingest_host}/documents/{document_id}"
@@ -607,6 +660,7 @@ async def get_documents(
 @router.post(
     "/users/{user_id}/conversations/{conv_id}/documents/upload",
     response_model=DocumentsResponse,
+    dependencies=[Depends(forbid_readonly)],
 )
 async def upload_document(
     request: Request,
@@ -708,6 +762,7 @@ async def upload_document(
 @router.post(
     "/users/{user_id}/conversations/{conv_id}/documents/{document_id}/process",
     response_model=ProcessResponse,
+    dependencies=[Depends(forbid_readonly)],
 )
 async def process_document(
     request: Request,
@@ -890,6 +945,7 @@ async def update_document(
     "/users/{user_id}/conversations/{conv_id}"
     "/documents/{document_id}/preview",
     response_model=DocumentPreviewResponse,
+    dependencies=[Depends(forbid_readonly)],
 )
 async def preview_document(
     request: Request,
@@ -1794,6 +1850,7 @@ async def user_get_repository_document_page_image(
     "/admin/documents/upload",
     response_model=DocRepoItem,
     status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(forbid_readonly)],
 )
 async def upload_repository_document(
     request: Request,
@@ -1909,6 +1966,7 @@ async def upload_repository_document(
 @router.post(
     "/admin/documents/{document_id}/replace",
     response_model=DocRepoItem,
+    dependencies=[Depends(forbid_readonly)],
 )
 async def replace_repository_document_file(
     request: Request,
@@ -2068,6 +2126,7 @@ async def delete_repository_document(
 @router.post(
     "/admin/documents/{document_id}/process",
     response_model=DocumentOut,
+    dependencies=[Depends(forbid_readonly)],
 )
 async def process_repository_document(
     request: Request,

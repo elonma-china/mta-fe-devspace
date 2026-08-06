@@ -670,6 +670,224 @@ async def directive_review_export_proxy(
         )
 
 
+# ── Audio overview (Dev Space) ──────────────────────────────────────
+# Submit and status already work through the generic proxies below:
+# `/tools/{tool_name}` forwards the JSON body untouched, and
+# `ToolStatusResponse` sets extra="allow" so object_key / transcript /
+# duration_sec / audio_format / size_bytes survive the round trip.
+#
+# These three do not, and each for its own reason: the file route returns
+# binary, and cancel/delete are three-segment paths the catch-all's shape
+# does not cover. Declared here, above the catch-all, per the invariant
+# stated at the top of the directive-review block.
+#
+# CALLER WARNING — do not send `startTime` when polling audio-overview
+# status. A finished AudioOverviewResponse carries no `status` field, and
+# `_apply_zombie_check` reads a status-less body as "stuck": past
+# ZOMBIE_TASK_TIMEOUT_MS it rewrites a perfectly good episode into
+# {status: FAILURE}. Omitting startTime takes the early-out at its top.
+
+_AUDIO_OVERVIEW_MEDIA_TYPE = "audio/mpeg"
+
+
+@router.get("/tools/audio-overview/{task_id}/file")
+async def audio_overview_file_proxy(
+    request: Request,
+    task_id: str,
+    _user: dict = Depends(get_current_user),
+):
+    """Stream a finished podcast episode from the AI service.
+
+    Streamed rather than buffered on purpose. An episode is tens of MB —
+    and larger still on hosts without ffmpeg, where the AI service falls
+    back from mp3 to wav — so the ``iter([upstream.content])`` shape used
+    by the DOCX export would hold the whole file in this process's memory.
+
+    Upstream statuses are passed through verbatim because each is a
+    distinct UI state: 409 (still rendering), 404 (deleted or expired),
+    502 (object store unreachable).
+
+    Args:
+        request: The incoming request, for audit context.
+        task_id: The Celery task id returned by the submit call.
+        _user: Authenticated user, injected.
+
+    Returns:
+        A ``StreamingResponse`` carrying the audio bytes.
+
+    Raises:
+        HTTPException: the upstream status on an upstream error, or 502
+            when the AI service is unreachable.
+    """
+    url = (
+        f"{settings.ai_service_host}/tools/audio-overview/"
+        f"{urllib.parse.quote(task_id, safe='')}/file"
+    )
+    headers: dict = {}
+    llm_api_key = settings.llm_api_key
+    if llm_api_key:
+        headers["Authorization"] = f"Bearer {llm_api_key}"
+
+    client = httpx.AsyncClient(timeout=None, follow_redirects=True)
+    try:
+        upstream = await client.send(
+            client.build_request("GET", url, headers=headers), stream=True
+        )
+    except Exception as exc:
+        await client.aclose()
+        audit_log(
+            request,
+            AuditActions.TOOL_PROXY_ERROR,
+            AuditEntityTypes.TOOL,
+            entity_id=task_id,
+            metadata={"tool_name": "audio-overview/file", "error": str(exc)},
+        )
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=ErrorMessages.UPSTREAM_ERROR,
+        )
+
+    if upstream.status_code >= 400:
+        err_text = (await upstream.aread()).decode(errors="replace")
+        await upstream.aclose()
+        await client.aclose()
+        err_json = parse_json_safe(err_text, None)
+        raise HTTPException(
+            status_code=upstream.status_code,
+            detail=err_json.get("detail") if err_json else err_text,
+        )
+
+    audit_log(
+        request,
+        AuditActions.TOOL_INVOKE,
+        AuditEntityTypes.TOOL,
+        entity_id=task_id,
+        metadata={
+            "tool_name": "audio-overview/file",
+            "upstream_status": upstream.status_code,
+        },
+    )
+
+    async def _stream():
+        try:
+            async for chunk in upstream.aiter_bytes(65536):
+                yield chunk
+        finally:
+            await upstream.aclose()
+            await client.aclose()
+
+    # Content-Length lets the browser show a real progress bar and lets
+    # <audio> seek. Both node proxies must be told NOT to strip it for this
+    # path — see the audio-overview entry in server.js / setupProxy.js.
+    passthrough = (
+        ("Content-Length", upstream.headers.get("content-length")),
+        ("Content-Disposition", upstream.headers.get("content-disposition")),
+    )
+    return StreamingResponse(
+        _stream(),
+        media_type=upstream.headers.get(
+            "content-type", _AUDIO_OVERVIEW_MEDIA_TYPE
+        ),
+        headers={k: v for k, v in passthrough if v},
+    )
+
+
+async def _audio_overview_action(
+    request: Request,
+    task_id: str,
+    method: str,
+    suffix: str,
+    tool_label: str,
+) -> dict:
+    """Proxy a JSON audio-overview control call, preserving its status.
+
+    Shared by cancel and delete: same auth, same audit shape, same
+    requirement that 409 ("task is still running") reaches the client as
+    409 rather than being flattened into a generic gateway error.
+    """
+    url = (
+        f"{settings.ai_service_host}/tools/audio-overview/"
+        f"{urllib.parse.quote(task_id, safe='')}{suffix}"
+    )
+    headers: dict = {}
+    llm_api_key = settings.llm_api_key
+    if llm_api_key:
+        headers["Authorization"] = f"Bearer {llm_api_key}"
+
+    try:
+        async with httpx.AsyncClient(
+            timeout=30, follow_redirects=True
+        ) as client:
+            upstream = await client.request(method, url, headers=headers)
+
+        text = upstream.text
+        parsed = parse_json_safe(text, None)
+
+        if upstream.status_code >= 400:
+            raise HTTPException(
+                status_code=upstream.status_code,
+                detail=parsed.get("detail") if parsed else text,
+            )
+
+        audit_log(
+            request,
+            AuditActions.TOOL_INVOKE,
+            AuditEntityTypes.TOOL,
+            entity_id=task_id,
+            metadata={
+                "tool_name": tool_label,
+                "upstream_status": upstream.status_code,
+            },
+        )
+        return parsed if parsed else {}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        audit_log(
+            request,
+            AuditActions.TOOL_PROXY_ERROR,
+            AuditEntityTypes.TOOL,
+            entity_id=task_id,
+            metadata={"tool_name": tool_label, "error": str(exc)},
+        )
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=ErrorMessages.UPSTREAM_ERROR,
+        )
+
+
+@router.post("/tools/audio-overview/{task_id}/cancel")
+async def audio_overview_cancel_proxy(
+    request: Request,
+    task_id: str,
+    _user: dict = Depends(get_current_user),
+):
+    """Ask the AI service to stop rendering an episode.
+
+    Cancellation is cooperative and asynchronous: this returns
+    ``cancel_requested``, and the task's status becomes ``cancelled`` on a
+    later poll. It is not a synchronous kill.
+    """
+    return await _audio_overview_action(
+        request, task_id, "POST", "/cancel", "audio-overview/cancel"
+    )
+
+
+@router.delete("/tools/audio-overview/{task_id}")
+async def audio_overview_delete_proxy(
+    request: Request,
+    task_id: str,
+    _user: dict = Depends(get_current_user),
+):
+    """Delete a finished episode and its stored audio.
+
+    Returns 409 while the task is still running — cancel it first.
+    """
+    return await _audio_overview_action(
+        request, task_id, "DELETE", "", "audio-overview/delete"
+    )
+
+
 @router.post("/tools/{tool_name}")
 async def tool_proxy(
     request: Request,

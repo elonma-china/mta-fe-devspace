@@ -95,3 +95,8 @@ class ErrorMessages:
     NO_DOCUMENT_SELECTED = (
         "Vui lòng chọn ít nhất một tài liệu để hỏi đáp."
     )
+    READONLY_CORPUS = (
+        "Dev Space chỉ đọc kho tài liệu thật — không cho phép tải lên, "
+        "xử lý lại hay xoá tài liệu. Dùng \"Chọn từ kho\" để đưa tài liệu "
+        "có sẵn vào hội thoại."
+    )

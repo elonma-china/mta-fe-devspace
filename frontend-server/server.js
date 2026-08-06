@@ -64,10 +64,14 @@ app.use('/tools', createProxyMiddleware({
   ...commonProxyOptions,
   onProxyRes: (proxyRes, req) => {
     // Binary DOCX exports must stream, not buffer — a stale content-length
-    // truncates the body. Keep this list in sync with frontend/src/setupProxy.js.
+    // truncates the body. Audio-overview episodes are the same shape but far
+    // bigger (tens of MB, and wav rather than mp3 on hosts without ffmpeg),
+    // so truncation there is the likely case, not the edge case.
+    // Keep this list in sync with frontend/src/setupProxy.js.
     if (
       req.url?.includes('/draft/export') ||
-      req.url?.includes('/directive-review/export')
+      req.url?.includes('/directive-review/export') ||
+      req.url?.includes('/audio-overview/')
     ) {
       delete proxyRes.headers['content-length'];
     }
