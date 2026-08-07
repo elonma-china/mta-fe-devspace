@@ -170,8 +170,12 @@ def eval_case(cid: str, case: dict) -> dict | None:
         stt_text = rt.read_text()
         # So với đúng phần transcript tương ứng 120s đầu (xấp xỉ theo tỉ lệ)
         take = len(norm(full_text)) if dur <= 120 else int(len(norm(full_text)) * 120 / dur)
+        # autojunk=False BẮT BUỘC: mặc định difflib coi ký tự xuất hiện >1%
+        # trong chuỗi >200 ký tự là "rác" — với văn bản dài, MỌI chữ cái phổ
+        # biến thành rác và ratio sập không theo quy luật (vòng 3: EV02 0.255
+        # dù STT khớp gần từng chữ; tắt autojunk → 0.936).
         sim = difflib.SequenceMatcher(
-            None, norm(full_text)[:take], norm(stt_text)
+            a=norm(full_text)[:take], b=norm(stt_text), autojunk=False
         ).ratio()
         checks["tts_roundtrip"] = {"value": round(sim, 3), "ok": sim >= ROUNDTRIP_MIN}
     else:

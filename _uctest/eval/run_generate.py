@@ -94,6 +94,10 @@ def poll(client: httpx.Client, case_id: str, task_id: str) -> dict:
             status = str(body.get("status", "")).lower()
             if status in ("failure", "failed", "error", "cancelled"):
                 return body
+            # Route trả lỗi dạng {"detail": ...} (HTTP 4xx/5xx) — terminal.
+            # Bug vòng 3: thiếu nhánh này nên EV08 fail-nhanh bị poll chay 45'.
+            if "detail" in body and "task_id" not in body:
+                return {"status": "failure", "eval_error": body["detail"]}
             # Tập xong không có field `status` — nhận diện bằng object_key.
             if body.get("object_key"):
                 return body
