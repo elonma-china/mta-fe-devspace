@@ -1,0 +1,488 @@
+{
+  "EV01": {
+    "case": "EV01",
+    "checks": {
+      "word_budget": {
+        "value": 1.01,
+        "words": 486,
+        "ok": true
+      },
+      "duration": {
+        "value": 0.89,
+        "sec": 106.2,
+        "ok": true
+      },
+      "dialogue_structure": {
+        "turns": 12,
+        "speakers": [
+          "guest",
+          "host"
+        ],
+        "max_monologue_run": 1,
+        "ok": true
+      },
+      "language_purity": {
+        "value": 0.01,
+        "sample": [
+          "podcast",
+          "gian",
+          "trung",
+          "ngay",
+          "giao"
+        ],
+        "ok": null
+      },
+      "numbers": {
+        "invented": [],
+        "strict": false,
+        "ok": true
+      },
+      "tts_roundtrip": {
+        "value": 0.991,
+        "ok": true
+      },
+      "qc_info": {
+        "attempts": null,
+        "notes": null,
+        "ok": true
+      }
+    },
+    "failed": [],
+    "pass": true
+  },
+  "EV02": {
+    "case": "EV02",
+    "checks": {
+      "word_budget": {
+        "value": 1.14,
+        "words": 546,
+        "ok": true
+      },
+      "duration": {
+        "value": 1.03,
+        "sec": 123.6,
+        "ok": true
+      },
+      "dialogue_structure": {
+        "turns": 12,
+        "speakers": [
+          "guest",
+          "host"
+        ],
+        "max_monologue_run": 2,
+        "ok": true
+      },
+      "language_purity": {
+        "value": 0.013,
+        "sample": [
+          "gian",
+          "giao",
+          "quan",
+          "quan",
+          "quan",
+          "giao",
+          "chia"
+        ],
+        "ok": null
+      },
+      "numbers": {
+        "invented": [],
+        "strict": false,
+        "ok": true
+      },
+      "tts_roundtrip": {
+        "value": 0.936,
+        "ok": true
+      },
+      "qc_info": {
+        "attempts": null,
+        "notes": null,
+        "ok": true
+      }
+    },
+    "failed": [],
+    "pass": true
+  },
+  "EV03": {
+    "case": "EV03",
+    "checks": {
+      "word_budget": {
+        "value": 0.87,
+        "words": 416,
+        "ok": true
+      },
+      "duration": {
+        "value": 1.41,
+        "sec": 169.5,
+        "ok": false
+      },
+      "dialogue_structure": {
+        "turns": 15,
+        "speakers": [
+          "guest",
+          "host"
+        ],
+        "max_monologue_run": 1,
+        "ok": true
+      },
+      "language_purity": {
+        "value": 0.0,
+        "sample": [],
+        "ok": null
+      },
+      "numbers": {
+        "invented": [],
+        "strict": false,
+        "ok": true
+      },
+      "tts_roundtrip": {
+        "value": 0.049,
+        "ok": false
+      },
+      "qc_info": {
+        "attempts": null,
+        "notes": null,
+        "ok": true
+      }
+    },
+    "failed": [
+      "duration",
+      "tts_roundtrip"
+    ],
+    "pass": false
+  },
+  "EV04": {
+    "case": "EV04",
+    "checks": {
+      "word_budget": {
+        "value": 1.31,
+        "words": 2509,
+        "ok": false
+      },
+      "duration": {
+        "value": 1.12,
+        "sec": 540.0,
+        "ok": true
+      },
+      "dialogue_structure": {
+        "turns": 44,
+        "speakers": [
+          "guest",
+          "host"
+        ],
+        "max_monologue_run": 1,
+        "ok": true
+      },
+      "language_purity": {
+        "value": 0.043,
+        "sample": [
+          "giai",
+          "cung",
+          "chia",
+          "giai",
+          "giai",
+          "giai",
+          "khai",
+          "chia"
+        ],
+        "ok": null
+      },
+      "numbers": {
+        "invented": [],
+        "strict": false,
+        "ok": true
+      },
+      "tts_roundtrip": {
+        "value": 0.978,
+        "ok": true
+      },
+      "qc_info": {
+        "attempts": null,
+        "notes": null,
+        "ok": true
+      }
+    },
+    "failed": [
+      "word_budget"
+    ],
+    "pass": false
+  },
+  "EV05": {
+    "case": "EV05",
+    "checks": {
+      "word_budget": {
+        "value": 3.03,
+        "words": 727,
+        "ok": false
+      },
+      "duration": {
+        "value": 2.86,
+        "sec": 171.8,
+        "ok": false
+      },
+      "dialogue_structure": {
+        "turns": 25,
+        "speakers": [
+          "guest",
+          "host"
+        ],
+        "max_monologue_run": 1,
+        "ok": true
+      },
+      "language_purity": {
+        "value": 0.063,
+        "sample": [
+          "podcast",
+          "giai",
+          "khai",
+          "chia",
+          "giai",
+          "khai",
+          "kinh",
+          "giai"
+        ],
+        "ok": null
+      },
+      "numbers": {
+        "invented": [],
+        "strict": false,
+        "ok": true
+      },
+      "tts_roundtrip": {
+        "value": 0.904,
+        "ok": true
+      },
+      "qc_info": {
+        "attempts": null,
+        "notes": null,
+        "ok": true
+      }
+    },
+    "failed": [
+      "word_budget",
+      "duration"
+    ],
+    "pass": false
+  },
+  "EV06": {
+    "case": "EV06",
+    "checks": {
+      "word_budget": {
+        "value": 0.86,
+        "words": 620,
+        "ok": true
+      },
+      "duration": {
+        "value": 0.94,
+        "sec": 168.8,
+        "ok": true
+      },
+      "dialogue_structure": {
+        "turns": 21,
+        "speakers": [
+          "guest",
+          "host"
+        ],
+        "max_monologue_run": 3,
+        "ok": true
+      },
+      "language_purity": {
+        "value": 0.026,
+        "sample": [
+          "nghe",
+          "podcast",
+          "tham",
+          "gian",
+          "tham",
+          "sang",
+          "trung",
+          "trung"
+        ],
+        "ok": null
+      },
+      "numbers": {
+        "invented": [],
+        "strict": true,
+        "ok": true
+      },
+      "tts_roundtrip": {
+        "value": 0.849,
+        "ok": true
+      },
+      "qc_info": {
+        "attempts": null,
+        "notes": null,
+        "ok": true
+      }
+    },
+    "failed": [],
+    "pass": true
+  },
+  "EV07": {
+    "case": "EV07",
+    "checks": {
+      "word_budget": {
+        "value": 0.92,
+        "words": 440,
+        "ok": true
+      },
+      "duration": {
+        "value": 0.86,
+        "sec": 103.3,
+        "ok": true
+      },
+      "dialogue_structure": {
+        "turns": 19,
+        "speakers": [
+          "guest",
+          "host"
+        ],
+        "max_monologue_run": 1,
+        "ok": true
+      },
+      "language_purity": {
+        "value": 0.023,
+        "sample": [
+          "podcast",
+          "internet",
+          "ngay",
+          "chung",
+          "zalo",
+          "chia",
+          "attt",
+          "chung"
+        ],
+        "ok": null
+      },
+      "numbers": {
+        "invented": [],
+        "strict": false,
+        "ok": true
+      },
+      "tts_roundtrip": {
+        "value": 0.951,
+        "ok": true
+      },
+      "qc_info": {
+        "attempts": null,
+        "notes": null,
+        "ok": true
+      }
+    },
+    "failed": [],
+    "pass": true
+  },
+  "EV08": {
+    "case": "EV08",
+    "checks": {
+      "word_budget": {
+        "value": 0.76,
+        "words": 366,
+        "ok": true
+      },
+      "duration": {
+        "value": 0.75,
+        "sec": 89.6,
+        "ok": true
+      },
+      "dialogue_structure": {
+        "turns": 10,
+        "speakers": [
+          "guest",
+          "host"
+        ],
+        "max_monologue_run": 1,
+        "ok": true
+      },
+      "language_purity": {
+        "value": 0.036,
+        "sample": [
+          "podcast",
+          "nhau",
+          "cntt",
+          "cntt",
+          "gian",
+          "truy",
+          "trung",
+          "cntt"
+        ],
+        "ok": null
+      },
+      "numbers": {
+        "invented": [],
+        "strict": true,
+        "ok": true
+      },
+      "both_sources_cited": {
+        "has_1250": true,
+        "has_1320": true,
+        "ok": true
+      },
+      "tts_roundtrip": {
+        "value": 0.897,
+        "ok": true
+      },
+      "qc_info": {
+        "attempts": null,
+        "notes": null,
+        "ok": true
+      }
+    },
+    "failed": [],
+    "pass": true
+  },
+  "EV10": {
+    "case": "EV10",
+    "checks": {
+      "word_budget": {
+        "value": 0.51,
+        "words": 368,
+        "ok": true
+      },
+      "duration": {
+        "value": 0.45,
+        "sec": 81.3,
+        "ok": true
+      },
+      "dialogue_structure": {
+        "turns": 11,
+        "speakers": [
+          "guest",
+          "host"
+        ],
+        "max_monologue_run": 1,
+        "ok": true
+      },
+      "language_purity": {
+        "value": 0.033,
+        "sample": [
+          "quay",
+          "podcast",
+          "gian",
+          "sang",
+          "ngay",
+          "thay",
+          "thay",
+          "quan"
+        ],
+        "ok": null
+      },
+      "numbers": {
+        "invented": [],
+        "strict": false,
+        "ok": true
+      },
+      "tts_roundtrip": {
+        "value": 0.954,
+        "ok": true
+      },
+      "qc_info": {
+        "attempts": null,
+        "notes": null,
+        "ok": true
+      }
+    },
+    "failed": [],
+    "pass": true
+  }
+}

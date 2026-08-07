@@ -1,5 +1,38 @@
 # Báo cáo eval podcast — 2026-08-07, ccoex (9 case text; EV09 chờ live BE)
 
+> ## KẾT LUẬN SAU 3 VÒNG (vòng 3 fix `37c025e`: ngữ-cảnh-số / đếm-N / được-bỏ-fact-khi-nén / kết-bắt-buộc)
+>
+> | Chỉ số | V1 | V2 | V3 |
+> |---|---|---|---|
+> | Máy đo pass | 3/9 | 6/9 | 6/9 |
+> | Trung thực TB (sau verify) | 3.56 | 4.11 | 3.89 |
+> | Major xác nhận | 6+ | 2 | 4 |
+> | Thời lượng / yêu cầu | 0.45–0.66 | 0.74–0.84 | **0.86–1.12** |
+> | Sàn nén EV05 | 1.42× | 3.82× | 2.86× |
+>
+> **Fix ăn bền qua các vòng**: thời lượng (≈1.0, coi như xong) · chống bịa-lấp-thời-lượng
+> EV10 (1→4→4, kèm artifact ngộ nghĩnh: guest tự thanh minh "không thêm chi tiết" —
+> chỉ thị prompt rò rỉ vào thoại) · EV08 hai-nguồn (3→3→4, vòng 3 xử lý chuẩn nhất:
+> giữ hedge, chênh 70 đúng).
+>
+> **Phát hiện quan trọng nhất của 3 vòng: BIẾN THIÊN GIỮA RUN là trần của fix-bằng-prompt.**
+> Mỗi vòng trượt kiểu khác: "âm lịch" (V1) → "bốn phần" (V2) → "6%"/60%, 9.5−6.2="1.5h",
+> QLKT tái phạm (V3). Ở temperature 0.7 với qwen3.5-9b, trung thực dao động quanh ~4/5
+> bất kể prompt. Ba đường nâng trần thật sự (đề xuất BE, theo thứ tự):
+> 1. **Thêm bước fact-check trong pipeline**: sau khi sinh kịch bản, một lượt LLM thứ hai
+>    đối chiếu MỌI con số trong script với nguồn trước khi TTS (rẻ: script ngắn, model tool
+>    có sẵn) — chặn đúng loại lỗi 6%/1.5h/bốn phần mà prompt không chặn nổi.
+> 2. Hạ temperature riêng cho sinh kịch bản (0.7 → ~0.3).
+> 3. Tăng parse-retry JSON (EV08-V3 từng fail 1 lần vì format, retry là xong).
+> Và: eval 1 lần = 1 mẫu — kết luận chất lượng cần chạy N lần (bộ đề + hội đồng đã tự động hoá đủ để làm điều đó).
+>
+> Verifier 3 vòng đều đảo án: V1 cứu 2 oan, V3 phân xử xung đột 2 judge ("80 triệu"
+> = 1,5−1,42 tỷ, hợp lệ) — chấm chéo không phải hình thức.
+>
+> Điểm vòng 3 sau verify — trung thực: EV01 5 · EV02 4 · EV03 3 (tính sai hiệu) · EV04 2
+> ("6%" + bịa tiêu chí + 13 minor do format hỏi-đáp ép guest độn chi tiết) · EV05 5 ·
+> EV06 5 (xử lý bẫy số tốt nhất bộ) · EV07 3 (QLKT) · EV08 4 · EV10 4.
+
 > **CẬP NHẬT — VÒNG 2 SAU FIX** (prompt `8b137c1` + `AUDIO_OVERVIEW_WPM=240`),
 > chấm bằng hội đồng agent HOÀN TOÀN MỚI + verifier đối kháng (9/9 cáo buộc mới
 > được thẩm tra):

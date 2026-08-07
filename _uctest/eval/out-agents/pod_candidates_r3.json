@@ -1,0 +1,74 @@
+[
+ {
+  "case": "EV03",
+  "quote_transcript": "That's a nearly hour-and-a-half improvement in detection speed.",
+  "reason": "9.5−6.2=3.3 giờ, không phải ~1.5 giờ — phép trừ trực tiếp nhưng TÍNH SAI",
+  "severity": "major"
+ },
+ {
+  "case": "EV04",
+  "quote_transcript": "việc di chuyển dữ liệu cũ từ các ổ cứng rời về kho tập trung mới chỉ đạt sáu phần trăm",
+  "reason": "F8 ghi 60% — đọc thành 6%, sai 10 lần",
+  "severity": "major"
+ },
+ {
+  "case": "EV04",
+  "quote_transcript": "Tiêu chí đánh giá bao gồm tỷ lệ hoàn thành các hạng mục hạ tầng, tốc độ triển khai ứng dụng và hiệu quả kinh tế",
+  "reason": "F15 chỉ nêu xếp thứ 3/11, không nêu tiêu chí nào — bịa nguyên nội dung",
+  "severity": "major"
+ },
+ {
+  "case": "EV04",
+  "quote_transcript": "Kinh phí bốn tỷ hai trăm triệu đồng được phân bổ vào ba trụ cột chính",
+  "reason": "F3 không nêu cách phân bổ",
+  "severity": "minor"
+ },
+ {
+  "case": "EV04",
+  "quote_transcript": "Trợ lý ảo được lập trình để trả lời các câu hỏi về quy trình, chính sách và hướng dẫn làm việc",
+  "reason": "F18 không nêu phạm vi câu hỏi",
+  "severity": "minor"
+ },
+ {
+  "case": "EV06",
+  "quote_transcript": "chênh 80 triệu (kinh phí 1,42/1,5 tỷ)",
+  "reason": "XUNG ĐỘT 2 JUDGE: coverage nói '80 triệu' bịa; fidelity nói 1,5−1,42=0,08 tỷ=80 triệu là suy trực tiếp hợp lệ. Phân xử: phép đổi đơn vị tỷ→triệu có được tính là suy trực tiếp không?",
+  "severity": "conflict"
+ },
+ {
+  "case": "EV06",
+  "quote_transcript": "Như vậy chúng ta đã vượt mức kế hoạch một chút, dù vẫn còn khoảng cách nhỏ so với biên chế chưa tham gia.",
+  "reason": "câu nối lẫn F1/F2 mơ hồ",
+  "severity": "minor"
+ },
+ {
+  "case": "EV07",
+  "quote_transcript": "Máy phải không kết nối Internet và được dán tem quản lý kỹ thuật.",
+  "reason": "QLKT bị tự chế nghĩa 'quản lý kỹ thuật' — nguồn không giải nghĩa (2 judge độc lập cùng bắt)",
+  "severity": "major"
+ },
+ {
+  "case": "EV08",
+  "quote_transcript": "Nghĩa là nếu một tài liệu được mượn và sau đó gia hạn, hệ thống có thể ghi nhận thêm một lượt mượn mới",
+  "reason": "mở rộng cơ chế cụ thể hơn F5, còn giữ hedge 'có thể'",
+  "severity": "minor"
+ },
+ {
+  "case": "EV02",
+  "quote_transcript": "bố trí thêm một nhân viên chuyên trách lưu trữ từ quý IV để giải quyết khối lượng công việc tăng đột biến",
+  "reason": "F12 không nêu lý do",
+  "severity": "minor"
+ },
+ {
+  "case": "EV10",
+  "quote_transcript": "Đây là hoạt động diễn ra ngay sau thời điểm thông báo có hiệu lực.",
+  "reason": "F2 không nêu thời điểm dã ngoại",
+  "severity": "minor"
+ },
+ {
+  "case": "EV10",
+  "quote_transcript": "Đây là thời điểm cắt quan trọng để đảm bảo việc cung ứng kịp thời.",
+  "reason": "F4 không nêu lý do mốc 17h",
+  "severity": "minor"
+ }
+]
