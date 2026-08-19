@@ -24,6 +24,8 @@
    - **Giọng**: nam / nữ. **Tông giọng**: Trang trọng · Tự nhiên · Sôi nổi · Chậm rãi.
    - **Chỉ tiếng Việt** — không còn lựa chọn ngôn ngữ; nhánh tiếng Anh đã gỡ khỏi cả 3 tầng.
    - Mỗi sổ ghi chú giữ **1 tập mỗi kiểu** → podcast và bản đọc cùng tồn tại được.
+   - Bảng nghe tập có nút **← Quay lại** (nó thay chỗ cả lưới công cụ nên đây là lối ra),
+     và khi tải tệp hỏng thì báo **mã lỗi** kèm nút **Thử lại** — không phải tạo lại tập.
 3. **Màu đỏ + logo DEV SPACE** — bật bởi `REACT_APP_BRAND=devspace`; bỏ biến này là về teal IntraMind.
 4. **Chặn ghi corpus** — `DEV_READONLY_CORPUS=true` khiến upload/xoá/xử-lý-lại tài liệu trả `403`.
    Kéo tài liệu thật vào hội thoại bằng **"Chọn từ kho"** (link-repository, không ghi upstream).

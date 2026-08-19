@@ -15,10 +15,16 @@
 ### 3 luật riêng của project này
 
 1. **Không đụng `mta-fe-intramind`.** Đây là project độc lập, git riêng, không remote chung.
-2. **Đọc corpus thật, không bao giờ ghi.** `AI_INGEST_HOST` trỏ vào BE **live** ở `:5002`.
-   Guard `DEV_READONLY_CORPUS=true` chặn cả 5 helper có ghi trong
-   `app/routes/document.py` — trong đó `_delete_remote_document` xoá thật tài liệu
-   khỏi corpus. **Không bao giờ gỡ guard này.**
+2. **Đọc corpus thật.** `AI_INGEST_HOST` trỏ vào BE **live** ở `:5002`. Guard
+   `DEV_READONLY_CORPUS` chặn cả 5 helper có ghi trong `app/routes/document.py` —
+   trong đó `_delete_remote_document` xoá thật tài liệu khỏi corpus.
+   **Mặc định của repo vẫn là `true`.**
+
+   > **Ngoại lệ đang có hiệu lực trên ccoex (2026-08-19)**: chủ dự án chủ động đặt
+   > `DEV_READONLY_CORPUS=false` để test được luồng upload thật ("cho phép như bản
+   > thật"). Hệ quả đã được nêu rõ và chấp nhận: Dev Space ghi/xoá thẳng vào index
+   > thật, và **xoá một hội thoại ở đây sẽ xoá tài liệu thật**. Bản `.env` cũ giữ ở
+   > `docker/.env.bak-readonly`. Đừng tự ý bật lại — cũng đừng tự ý gỡ ở nơi khác.
 3. **Skin đỏ phải nằm sau cổng `REACT_APP_BRAND`.** Không hardcode màu vào
    `index.css` — nhờ vậy patch voice bàn giao cho FE không lẫn thay đổi màu
    (xem mục "Bàn giao" trong `README.md`).

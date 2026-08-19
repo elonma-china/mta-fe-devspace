@@ -4,7 +4,13 @@
 
 .vw-canvas {
   display: block;
-  width: 100%;
+  /* Bề rộng CỐ ĐỊNH, không phải 100%. Đo trên ccoex 2026-08-19: với `width:
+     100%` phổ trải hết chiều ngang khung nhập — chỉ cần một tổ tiên nào đó
+     không kẹp được bề rộng (khung nhập là flex, ô chữ `flex:1 1 auto`) là
+     canvas nở theo. Kẹp bằng px ở CHÍNH canvas thì không layout nào kéo giãn
+     được nữa; `--vw-width` cho nơi dùng chỉnh lại nếu cần. */
+  width: var(--vw-width, 84px);
+  max-width: 100%;
   height: 24px;
   /* Canvas không kế thừa được biến CSS vào ngữ cảnh vẽ; khai ở đây để
      getComputedStyle trong component đọc ra đúng token đang hiệu lực. */

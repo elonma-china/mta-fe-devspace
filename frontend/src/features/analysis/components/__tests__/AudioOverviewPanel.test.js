@@ -1,5 +1,6 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import AudioOverviewPanel from "../AudioOverviewPanel";
 import { fetchAudioOverviewBlob } from "../../api/audioOverview";
 
@@ -148,4 +149,42 @@ test("không có ghi chú khi nguồn vừa ngữ cảnh", () => {
     <AudioOverviewPanel episode={episode()} onClose={() => {}} onDelete={() => {}} />
   );
   expect(screen.queryByText(/Đã nén/)).toBeNull();
+});
+
+test("nút Quay lại gọi onClose — panel chiếm chỗ toàn bộ lưới công cụ nên đây là lối ra duy nhất", async () => {
+  const onClose = jest.fn();
+  render(
+    <AudioOverviewPanel episode={episode()} onClose={onClose} onDelete={() => {}} />
+  );
+  await userEvent.click(screen.getByRole("button", { name: /Quay lại/ }));
+  expect(onClose).toHaveBeenCalledTimes(1);
+});
+
+test("tải tệp hỏng thì hiện mã lỗi và Thử lại gọi fetch lần nữa", async () => {
+  // Một cú fetch trượt không được là vĩnh viễn: tập vẫn còn trên máy chủ, bắt
+  // tạo lại một tập 3 phút chỉ vì lỗi mạng là mất toàn bộ công chờ.
+  const err = new Error("boom");
+  err.status = 502;
+  fetchAudioOverviewBlob.mockRejectedValueOnce(err);
+
+  render(
+    <AudioOverviewPanel episode={episode()} onClose={() => {}} onDelete={() => {}} />
+  );
+  expect(await screen.findByText(/Không tải được tệp âm thanh \(lỗi 502\)/)).toBeInTheDocument();
+
+  fetchAudioOverviewBlob.mockResolvedValueOnce(new Blob(["x"]));
+  await userEvent.click(screen.getByRole("button", { name: "Thử lại" }));
+
+  await waitFor(() => expect(fetchAudioOverviewBlob).toHaveBeenCalledTimes(2));
+  expect(screen.queryByText(/Không tải được/)).toBeNull();
+});
+
+test("401 nói rõ là hết phiên, không phải lỗi tệp", async () => {
+  const err = new Error("unauthorized");
+  err.status = 401;
+  fetchAudioOverviewBlob.mockRejectedValueOnce(err);
+  render(
+    <AudioOverviewPanel episode={episode()} onClose={() => {}} onDelete={() => {}} />
+  );
+  expect(await screen.findByText(/Phiên đăng nhập đã hết hạn/)).toBeInTheDocument();
 });

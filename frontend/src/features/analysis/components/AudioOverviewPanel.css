@@ -20,6 +20,32 @@
   gap: var(--space-md);
 }
 
+/* Lối về lưới công cụ. Đặt TRƯỚC tiêu đề và đọc thành chữ, vì panel này chiếm
+   chỗ của toàn bộ lưới — người dùng cần thấy ngay là mình đang ở một màn con. */
+.ao-panel-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+  padding: var(--space-xs) var(--space-md);
+  border: 1px solid var(--border-neutral-secondary);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--txt-neutral-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}
+
+.ao-panel-back:hover {
+  border-color: var(--border-primary);
+  color: var(--brand-primary);
+}
+
+.ao-panel-titles {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .ao-panel-title {
   margin: 0 0 var(--space-xs);
   font-family: var(--title-font-family);
@@ -72,21 +98,46 @@
   color: var(--brand-primary);
 }
 
+/* Giữ chỗ cố định cho ba trạng thái (đang tải / lỗi / trình phát) để lời thoại
+   bên dưới không nhảy khi tệp tải xong. */
+.ao-player-slot {
+  display: flex;
+  align-items: center;
+  min-height: 54px;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
+}
+
 .ao-player {
   width: 100%;
 }
 
-.ao-panel-loading,
-.ao-panel-error {
+.ao-panel-loading {
   margin: 0;
   color: var(--txt-neutral-tertiary);
   font-size: var(--font-size-sm);
 }
 
+.ao-panel-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  margin: 0;
+  color: var(--txt-neutral-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* Lời thoại dài tự cuộn trong khối của nó, không đẩy trình phát ra khỏi màn
+   hình — người dùng luôn với tới được nút play khi đang đọc. */
 .ao-transcript {
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+  max-height: 46vh;
+  overflow-y: auto;
+  padding-right: var(--space-xs);
 }
 
 .ao-transcript-title {

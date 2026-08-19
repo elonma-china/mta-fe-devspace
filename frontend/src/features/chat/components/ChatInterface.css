@@ -273,6 +273,10 @@
 .ci-input {
   flex: 1 1 auto;
   width: 100%;
+  /* min-width:auto mặc định của flex item khiến textarea KHÔNG co dưới bề
+     rộng nội tại của nó; khi phổ + đồng hồ hiện lúc ghi âm, hàng flex tràn và
+     khung (overflow:hidden) cắt mất nút gửi. */
+  min-width: 0;
   max-width: 975px;
   min-height: 24px;
   padding-top: 8px;

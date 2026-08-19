@@ -34,6 +34,11 @@ const VOICE_LABELS = { male: "giọng nam", female: "giọng nữ" };
 export default function AudioOverviewPanel({ episode, onClose, onDelete }) {
   const [audioUrl, setAudioUrl] = useState(null);
   const [error, setError] = useState(null);
+  // Tăng lên để chạy lại effect tải tệp. Một lần hỏng KHÔNG được là vĩnh viễn:
+  // tệp nằm trên MinIO qua hai chặng mạng, và bản thân tập vẫn còn nguyên —
+  // bắt người dùng xoá đi tạo lại một tập 3 phút chỉ vì một cú fetch trượt là
+  // mất cả công chờ.
+  const [attempt, setAttempt] = useState(0);
   const urlRef = useRef(null);
 
   const taskId = episode?.taskId;
@@ -59,11 +64,18 @@ export default function AudioOverviewPanel({ episode, onClose, onDelete }) {
         setAudioUrl(url);
       } catch (err) {
         if (!cancelled && err?.name !== "AbortError") {
-          setError(
-            err?.status === 404
-              ? "Tệp âm thanh không còn trên máy chủ."
-              : "Không tải được tệp âm thanh."
-          );
+          // Nói ra MÃ LỖI: 404 (tệp đã bị dọn), 401 (token hết hạn — bấm thử
+          // lại vô ích, phải đăng nhập lại), 404-do-proxy (từng xảy ra thật khi
+          // tiền tố /tools bị cắt). Một câu "Không tải được" chung chung khiến
+          // ba nguyên nhân rất khác nhau trông giống hệt nhau.
+          const status = err?.status;
+          if (status === 404) setError("Tệp âm thanh không còn trên máy chủ.");
+          else if (status === 401 || status === 403)
+            setError("Phiên đăng nhập đã hết hạn — hãy đăng nhập lại.");
+          else
+            setError(
+              `Không tải được tệp âm thanh${status ? ` (lỗi ${status})` : ""}.`
+            );
         }
       }
     })();
@@ -78,7 +90,7 @@ export default function AudioOverviewPanel({ episode, onClose, onDelete }) {
         urlRef.current = null;
       }
     };
-  }, [taskId]);
+  }, [taskId, attempt]);
 
   if (!episode) return null;
 
@@ -100,6 +112,18 @@ export default function AudioOverviewPanel({ episode, onClose, onDelete }) {
   return (
     <section className="ao-panel" aria-label="Tổng quan âm thanh">
       <header className="ao-panel-head">
+        {/* Nút quay lại tường minh, KHÔNG phải dấu ✕: panel này thay thế TOÀN BỘ
+            lưới công cụ (tóm tắt/mindmap/soạn thảo), nên khi nó mở thì không còn
+            lối nào khác trở về. Một dấu ✕ nhỏ ở góc phải đọc như "đóng thông
+            báo", không đọc như "trở lại danh sách công cụ". */}
+        <button
+          type="button"
+          className="ao-panel-back"
+          onClick={onClose}
+          aria-label="Quay lại danh sách công cụ"
+        >
+          <span aria-hidden="true">←</span> Quay lại
+        </button>
         <div className="ao-panel-titles">
           <h2 className="ao-panel-title">{episode.name || "Tổng quan âm thanh"}</h2>
           <div className="ao-panel-meta">
@@ -130,15 +154,7 @@ export default function AudioOverviewPanel({ episode, onClose, onDelete }) {
         </div>
         <div className="ao-panel-tools">
           <button type="button" className="ao-panel-btn" onClick={onDelete}>
-            Xoá
-          </button>
-          <button
-            type="button"
-            className="ao-panel-btn"
-            onClick={onClose}
-            aria-label="Đóng"
-          >
-            ✕
+            Xoá tập
           </button>
         </div>
       </header>
@@ -150,17 +166,32 @@ export default function AudioOverviewPanel({ episode, onClose, onDelete }) {
         </p>
       )}
 
-      {error ? (
-        <p className="ao-panel-error" role="alert">
-          {error}
-        </p>
-      ) : audioUrl ? (
-        <audio className="ao-player" controls src={audioUrl}>
-          Trình duyệt không hỗ trợ phát âm thanh.
-        </audio>
-      ) : (
-        <p className="ao-panel-loading">Đang tải tệp âm thanh…</p>
-      )}
+      {/* Chiều cao cố định cho cả ba trạng thái: tải xong thì trình phát hiện
+          ra đúng chỗ đang chờ, lời thoại bên dưới không nhảy. */}
+      <div className="ao-player-slot">
+        {error ? (
+          <div className="ao-panel-error" role="alert">
+            <span>{error}</span>
+            <button
+              type="button"
+              className="ao-panel-btn"
+              onClick={() => {
+                setError(null);
+                setAudioUrl(null);
+                setAttempt((n) => n + 1);
+              }}
+            >
+              Thử lại
+            </button>
+          </div>
+        ) : audioUrl ? (
+          <audio className="ao-player" controls preload="metadata" src={audioUrl}>
+            Trình duyệt không hỗ trợ phát âm thanh.
+          </audio>
+        ) : (
+          <p className="ao-panel-loading">Đang tải tệp âm thanh…</p>
+        )}
+      </div>
 
       <div className="ao-transcript">
         <h3 className="ao-transcript-title">

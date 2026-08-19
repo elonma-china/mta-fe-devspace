@@ -118,7 +118,17 @@
    không nhảy chỗ theo từng khung vẽ. */
 .ci-mic-wave {
   display: inline-block;
-  width: 84px;
+  --vw-width: 84px;
+  width: var(--vw-width);
+  max-width: var(--vw-width);
   height: 24px;
   flex: 0 0 auto;
+  overflow: hidden;
+}
+
+/* Màn hẹp: thu phổ lại thay vì đẩy ô nhập chữ ra ngoài khung. */
+@media (max-width: 640px) {
+  .ci-mic-wave {
+    --vw-width: 48px;
+  }
 }
