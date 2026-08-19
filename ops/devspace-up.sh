@@ -41,6 +41,27 @@ for port in 5001 5002 5003; do
 done
 log "live stack healthy on :5001 :5002 :5003 (untouched)"
 
+# ── tmux hoặc setsid ─────────────────────────────────────────────────
+# ccoex KHÔNG có tmux (đã kiểm 2026-08-19: không /usr/bin/tmux, không snap) và
+# không có sudo để cài. Giữ tmux khi có vì nó cho `attach` xem log trực tiếp;
+# thiếu thì rơi về setsid — cùng cách restore-all.sh vẫn dùng để dựng lại sau
+# reboot. Đừng đổi thành `command -v tmux || die`: cả hai đường đều chạy được.
+HAVE_TMUX=0
+command -v tmux >/dev/null 2>&1 && HAVE_TMUX=1
+
+# run_bg <tên phiên> <thư mục> <lệnh shell>
+run_bg() {
+  local name="$1" dir="$2" cmd="$3"
+  if [ "$HAVE_TMUX" = 1 ]; then
+    tmux kill-session -t "$name" 2>/dev/null || true
+    tmux new-session -d -s "$name" -c "$dir" "$cmd"
+  else
+    ( cd "$dir" && setsid -f bash -c "$cmd" </dev/null >/dev/null 2>&1 )
+  fi
+}
+
+
+
 [ -d "$ROOT" ] || die "$ROOT missing — run devspace-bootstrap.sh first"
 
 # ── 1+2. Isolated stateful containers ────────────────────────────────
@@ -69,9 +90,23 @@ fi
 # card has ~3.7 GB free and a second jina-v3 (~2 GB + a ~1.8 GB listwise
 # spike) would OOM the LIVE answer LLM.
 log "starting serving-voice on :$SERVING_PORT"
-tmux kill-session -t devspace-serving 2>/dev/null || true
-tmux new-session -d -s devspace-serving -c "$ROOT/mta-ai-serving-intramind" \
-  "PATH=$ROOT/bin:\$PATH .venv/bin/python -m uvicorn app.main:app \
+# Serving đọc os.environ THUẦN, không đọc .env — thiếu khối env này thì engine
+# không nạp, /voices trả rỗng và embedder nhảy lên GPU tranh VRAM của bản thật.
+# TTS_OUTPUT_SAMPLE_RATE=48000 là tần số gốc của VieNeu; resample không có lọc
+# chống răng cưa nên không bao giờ đặt thấp hơn tần số gốc của engine đang nạp.
+run_bg devspace-serving "$ROOT/mta-ai-serving-intramind" \
+  "PATH=$ROOT/bin:\$PATH \
+   EMBEDDING_DEVICE=cpu HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 ENABLE_RERANKER=false \
+   ENABLE_TTS=true \
+   TTS_VOICE_VI_FEMALE=piper_vi_female TTS_VOICE_VI_MALE=piper_vi_male TTS_VOICE_VI_MALE_SID=38 \
+   TTS_VOICE_VI_FEMALE_HQ=vieneu_vi_female TTS_VOICE_VI_MALE_HQ=vieneu_vi_male \
+   TTS_VIENEU_SPEAKER_FEMALE='Kim Thanh' TTS_VIENEU_SPEAKER_MALE='Minh Đức' \
+   TTS_VIENEU_PRECISION=int8 TTS_VIENEU_MAX_CHARS=64 TTS_VIENEU_MAX_BATCH=1 \
+   TTS_OUTPUT_SAMPLE_RATE=48000 \
+   TTS_MODEL_DIR=$ROOT/models/tts TTS_DEVICE=cpu TTS_NUM_THREADS=2 \
+   ENABLE_STT=true STT_ENGINE_VI=sherpa_vi_30m \
+   STT_MODEL_DIR=$ROOT/models/stt STT_DEVICE=cpu STT_NUM_THREADS=2 \
+   .venv/bin/python -m uvicorn app.main:app \
      --host 0.0.0.0 --port $SERVING_PORT >> $ROOT/logs/serving-voice.log 2>&1"
 
 log "waiting for serving-voice /health"
@@ -92,21 +127,22 @@ echo "$VOICES" | grep -q '"vi_female"' \
 # a two-host podcast.
 echo "$VOICES" | grep -q '"vi_male"' \
   || echo "WARN: giọng nam chưa nạp — chạy docker/voice_model_download.sh (bundle vivos)"
+# Giọng HQ nạp lười: /voices khai báo trước, trọng số vào RAM ở lượt TTS đầu.
+echo "$VOICES" | grep -q '"vi_male_hq"' \
+  || echo "WARN: thiếu vi_*_hq — kiểm gói vieneu trong .venv + HF cache; tập sẽ tự hạ về Piper 16 kHz"
 
 # ── 4. AI voice + worker ─────────────────────────────────────────────
 log "starting ai-voice on :$AI_PORT"
-tmux kill-session -t devspace-ai 2>/dev/null || true
-tmux new-session -d -s devspace-ai -c "$ROOT/mta-ai-intramind" \
-  ".venv/bin/python -m uvicorn api.main:app \
+run_bg devspace-ai "$ROOT/mta-ai-intramind" \
+  "PATH=$ROOT/bin:\$PATH .venv/bin/python -m uvicorn api.main:app \
      --host 0.0.0.0 --port $AI_PORT >> $ROOT/logs/ai-voice.log 2>&1"
 
 # CELERY_QUEUES is defence in depth on top of the dedicated Redis: the
 # script's default queue list overlaps the live worker's five queues.
 log "starting ai-voice worker (queue: audio_overview only)"
-tmux kill-session -t devspace-worker 2>/dev/null || true
-tmux new-session -d -s devspace-worker -c "$ROOT/mta-ai-intramind" \
+run_bg devspace-worker "$ROOT/mta-ai-intramind" \
   "CELERY_QUEUES=audio_overview \
-   CELERY_WORKER_NAME=devspace-audio@admin-server \
+   CELERY_WORKER_NAME=devspace-audio \
    PATH=$ROOT/bin:\$PATH \
    bash scripts/start-worker.sh >> $ROOT/logs/ai-voice-worker.log 2>&1"
 
@@ -130,5 +166,9 @@ curl -s -o /dev/null -w '%{http_code} (404 expected)\n' \
 
 log "Dev Space backend up — AI :$AI_PORT · serving :$SERVING_PORT"
 echo "  logs:   $ROOT/logs/"
-echo "  attach: tmux attach -t devspace-ai | devspace-worker | devspace-serving"
+if command -v tmux >/dev/null 2>&1; then
+  echo "  attach: tmux attach -t devspace-ai | devspace-worker | devspace-serving"
+else
+  echo "  không có tmux — tiến trình chạy nền qua setsid, xem log ở $ROOT/logs/"
+fi
 echo "  down:   $ROOT/ops/devspace-down.sh"

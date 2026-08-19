@@ -72,13 +72,26 @@ if alive 15003; then echo "  đã sống, bỏ qua"; else
   # Env PHẢI export trên dòng lệnh: repo serving đọc os.environ thuần, KHÔNG
   # đọc .env — bỏ qua bước này thì engine không nạp (/voices trả rỗng) và
   # embedder nhảy lên GPU, ăn tranh VRAM của LLM bản thật.
+  #
+  # 48000 chứ không phải 22050: VieNeu-TTS phát ở 48 kHz và bộ resample trong
+  # tts/base.py KHÔNG có bộ lọc chống răng cưa — hạ dưới tần số gốc của một
+  # engine đang nạp là tự làm méo tiếng. Piper (16/22 kHz) resample LÊN, an toàn.
+  #
+  # Khối *_HQ phải khai tường minh: thiếu nó thì hai giọng VieNeu không nạp,
+  # /voices vẫn trả 200 với 2 giọng Piper và tập podcast vẫn chạy — hỏng kiểu
+  # im lặng, chỉ nghe ra bằng tai (16 kHz thay vì 48 kHz).
   ( cd "$DEV/mta-ai-serving-intramind" && \
     env PATH="$DEV/bin:$PATH" \
       EMBEDDING_DEVICE=cpu HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
       ENABLE_RERANKER=false \
       ENABLE_TTS=true \
       TTS_VOICE_VI_FEMALE=piper_vi_female TTS_VOICE_VI_MALE=piper_vi_male \
-      TTS_VOICE_VI_MALE_SID=38 TTS_OUTPUT_SAMPLE_RATE=22050 \
+      TTS_VOICE_VI_MALE_SID=38 \
+      TTS_VOICE_VI_FEMALE_HQ=vieneu_vi_female TTS_VOICE_VI_MALE_HQ=vieneu_vi_male \
+      TTS_VIENEU_SPEAKER_FEMALE="Kim Thanh" TTS_VIENEU_SPEAKER_MALE="Minh Đức" \
+      TTS_VIENEU_PRECISION=int8 TTS_VIENEU_MAX_CHARS=64 TTS_VIENEU_MAX_BATCH=1 \
+      TTS_VIENEU_IDLE_TIMEOUT=600 \
+      TTS_OUTPUT_SAMPLE_RATE=48000 \
       TTS_MODEL_DIR="$DEV/models/tts" TTS_DEVICE=cpu TTS_NUM_THREADS=2 \
       ENABLE_STT=true STT_ENGINE_VI=sherpa_vi_30m \
       STT_MODEL_DIR="$DEV/models/stt" STT_DEVICE=cpu STT_NUM_THREADS=2 \
@@ -93,6 +106,9 @@ if alive 15003; then echo "  đã sống, bỏ qua"; else
   echo "$VOICES" | grep -q '"vi_male"' \
     && echo "  giọng nam đã nạp" \
     || warn "thiếu vi_male — chạy voice_model_download.sh (bundle vivos); podcast 2 giọng sẽ lỗi"
+  echo "$VOICES" | grep -q '"vi_male_hq"' \
+    && echo "  giọng HQ VieNeu đã khai báo (nạp lười ở lượt đầu)" \
+    || warn "thiếu vi_*_hq — kiểm gói vieneu trong .venv và HF cache; tập sẽ tự hạ về Piper 16 kHz"
 fi
 
 log "DEV 2/2 — AI :15001 + worker (chỉ queue audio_overview)"

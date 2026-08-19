@@ -41,18 +41,42 @@ ssh -L 18001:localhost:18001 ccoex@100.108.33.98   # rồi mở http://localhost
 
 ## Triển khai trên ccoex
 
-Dev Space chạy **song song** stack thật trên cùng máy. Thứ tự bắt buộc:
+Dev Space chạy **song song** stack thật trên cùng máy, trong cây riêng
+`~/devspace/` (không nằm trong `~/Desktop/intramind_staging`). Thứ tự bắt buộc:
 
 | # | Bước | Lệnh | Cổng |
 |---|---|---|---|
-| 1 | Cài đặt lần đầu (clone, venv, model, ffmpeg, `.env`) | `ops/devspace-bootstrap.sh` | — |
-| 2 | Dựng backend voice | `ops/devspace-up.sh` | AI `15001`, serving `15003`, redis `16379`, minio `19000` |
-| 3 | Dựng FE Dev Space | `PORT_OFFSET=10000 COMPOSE_PROJECT=devspace-fe ./deploy/02-up.sh` | FE `18001`, gateway `15050`, pg `15432`, mongo `37018` |
+| 0 | Lấy mã nguồn | `git clone https://github.com/elonma-china/mta-fe-devspace.git ~/devspace/mta-fe-devspace` | — |
+| 1 | Cài đặt lần đầu (clone backend, venv, model, ffmpeg, `.env`) | `ops/devspace-bootstrap.sh` | — |
+| 2 | Dựng backend voice | `ops/devspace-up.sh` (hoặc `SKIP_LIVE=1 ops/restore-all.sh`) | AI `15001`, serving `15003`, redis `16379`, minio `19000` |
+| 3 | Dựng FE Dev Space | xem lệnh đầy đủ bên dưới | FE `18001`, gateway `15050`, pg `15432`, mongo `37018` |
+| 4 | Nghiệm thu | `PORT_OFFSET=10000 COMPOSE_PROJECT=devspace-fe SKIP_PYTEST=1 ./deploy/03-test.sh` | — |
 | — | Gỡ sạch | `ops/devspace-down.sh` | — |
+
+Lệnh bước 3 — bốn biến in đậm là thứ giữ Dev Space **không đụng** bản thật; thiếu
+biến nào thì `02-up.sh` rơi về mặc định của bản thật và giẫm lên nó:
+
+```bash
+IM_REGISTRY=devspace IM_TAG=devspace NETWORK_NAME=devspace_net \
+PORT_OFFSET=10000 COMPOSE_PROJECT=devspace-fe ./deploy/02-up.sh
+```
+
+| Thứ bị tách | Dev Space | Bản thật |
+|---|---|---|
+| Cổng (`PORT_OFFSET=10000`) | 18001 / 15050 / 15432 / 37018 | 8001 / 5050 / 5432 / 27018 |
+| Ảnh Docker (`IM_REGISTRY`/`IM_TAG`) | `devspace/fe*:devspace` | `intramind-client-*` |
+| Container + volume (`docker/.env`) | `devspace-` / `devspace_` | `intramind-` / `intramind_` |
+| Mạng (`NETWORK_NAME`) | `devspace_net` | `intramind_net` |
+| Redis / MinIO | `:16379` / `:19000` | `:6379` / `:9000` |
 
 `docker/.env` bắt buộc có:
 
 ```ini
+IM_REGISTRY=devspace                # ảnh riêng, không đè ảnh bản thật
+IM_TAG=devspace
+CONTAINER_PREFIX=devspace-
+VOLUME_PREFIX=devspace_
+NETWORK_NAME=devspace_net
 REACT_APP_BRAND=devspace
 DEV_READONLY_CORPUS=true            # chốt chặn thật (gateway)
 REACT_APP_READONLY_CORPUS=true      # lớp UX (ẩn nút upload) — phải bằng dòng trên
@@ -60,6 +84,16 @@ AI_SERVICE_HOST=http://host.docker.internal:15001/api/v1   # AI voice
 AI_INGEST_HOST=http://host.docker.internal:5002/api/v1     # BE thật, chỉ đọc
 JWT_SECRET=<openssl rand -hex 32>   # KHÔNG tái dùng secret của bản thật
 ```
+
+Backend voice mà FE này cần (nhánh `feature-voiceRAG`, ghim trong bootstrap):
+
+| Repo | Commit | Phải có |
+|---|---|---|
+| `mta-ai-intramind` | `985698a` | `tools/audio_overview_utils/tone.py`, nhận `mode`/`voice_gender`/`tone` |
+| `mta-ai-serving-intramind` | `9f93248` | `vieneu==3.2.6` + `onnxruntime`, `/api/v1/voices` trả 4 giọng |
+
+Bản cũ hơn (thời Piper) **không dùng được**: submit Tổng quan âm thanh sẽ lỗi vì
+backend không biết `voice_gender`/`tone`.
 
 ### 3 luật an toàn (stack thật dùng chung máy)
 
