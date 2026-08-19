@@ -26,6 +26,28 @@ export const AUDIO_STATUS = {
 
 const STORAGE_PREFIX = "im.audioOverview.";
 
+/** The two episode kinds. `podcast` = two hosts; `narration` = one reader. */
+export const AUDIO_MODE = {
+  PODCAST: "podcast",
+  NARRATION: "narration",
+};
+
+export const AUDIO_MODES = [AUDIO_MODE.PODCAST, AUDIO_MODE.NARRATION];
+
+/**
+ * Store/localStorage key for one episode.
+ *
+ * Keyed by conversation AND mode, not by conversation alone: the two modes
+ * answer different questions, so making a reading force you to delete your
+ * podcast would be an artificial limit. One in-flight episode *per mode* is
+ * still the rule — that is what keeps the poll loop a single task.
+ *
+ * @param {number|string} conversationId
+ * @param {"podcast"|"narration"} [mode]
+ */
+export const episodeKey = (conversationId, mode = AUDIO_MODE.NARRATION) =>
+  `${conversationId}:${mode}`;
+
 /**
  * Episodes live in localStorage rather than the gateway's `info_table`.
  *
@@ -35,18 +57,18 @@ const STORAGE_PREFIX = "im.audioOverview.";
  * survives a reload either way. Adding `migrate_011.sql` is the
  * productionisation step, not a prerequisite.
  */
-const storageKey = (conversationId) => `${STORAGE_PREFIX}${conversationId}`;
+const storageKey = (key) => `${STORAGE_PREFIX}${key}`;
 
-const persist = (conversationId, episode) => {
-  if (!conversationId) return;
+/** Pre-mode key, when an episode was stored per conversation only. */
+const legacyStorageKey = (conversationId) => `${STORAGE_PREFIX}${conversationId}`;
+
+const persist = (key, episode) => {
+  if (!key) return;
   try {
     if (episode) {
-      window.localStorage.setItem(
-        storageKey(conversationId),
-        JSON.stringify(episode)
-      );
+      window.localStorage.setItem(storageKey(key), JSON.stringify(episode));
     } else {
-      window.localStorage.removeItem(storageKey(conversationId));
+      window.localStorage.removeItem(storageKey(key));
     }
   } catch {
     // Private mode / quota. The episode still works for this session; losing
@@ -54,11 +76,34 @@ const persist = (conversationId, episode) => {
   }
 };
 
-const readPersisted = (conversationId) => {
-  if (!conversationId) return null;
+const readPersisted = (key) => {
+  if (!key) return null;
   try {
-    const raw = window.localStorage.getItem(storageKey(conversationId));
+    const raw = window.localStorage.getItem(storageKey(key));
     return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Move a pre-mode entry onto the podcast key.
+ *
+ * Worth the ten lines: an episode can take 45 minutes, and its only handle is
+ * this key. Renaming the key without moving the value would strand a running
+ * job — the user would see nothing, be unable to cancel it, and it would keep
+ * rendering.
+ */
+const migrateLegacy = (conversationId) => {
+  try {
+    const raw = window.localStorage.getItem(legacyStorageKey(conversationId));
+    if (!raw) return null;
+    const target = episodeKey(conversationId, AUDIO_MODE.PODCAST);
+    if (!window.localStorage.getItem(storageKey(target))) {
+      window.localStorage.setItem(storageKey(target), raw);
+    }
+    window.localStorage.removeItem(legacyStorageKey(conversationId));
+    return JSON.parse(raw);
   } catch {
     return null;
   }
@@ -114,60 +159,93 @@ export function progressLabel(progress) {
 }
 
 const useAudioOverviewStore = create((set, get) => ({
-  /** conversationId -> episode */
+  /** episodeKey(conversationId, mode) -> episode */
   episodes: {},
-  /** conversationId whose panel is open, or null */
-  openConvId: null,
+  /** episodeKey whose panel is open, or null */
+  openKey: null,
 
-  /** Load a persisted episode for a conversation, if any. */
+  /** Load every persisted episode for a conversation, migrating old keys. */
   hydrate: (conversationId) => {
-    if (!conversationId || get().episodes[conversationId]) return;
-    const stored = readPersisted(conversationId);
-    if (stored) {
-      set((s) => ({
-        episodes: { ...s.episodes, [conversationId]: stored },
-      }));
+    if (!conversationId) return;
+    const legacy = migrateLegacy(conversationId);
+    const loaded = {};
+    AUDIO_MODES.forEach((mode) => {
+      const key = episodeKey(conversationId, mode);
+      if (get().episodes[key]) return;
+      const stored =
+        readPersisted(key) || (mode === AUDIO_MODE.PODCAST ? legacy : null);
+      if (stored) loaded[key] = stored;
+    });
+    if (Object.keys(loaded).length) {
+      set((s) => ({ episodes: { ...s.episodes, ...loaded } }));
     }
   },
 
-  /** Replace one conversation's episode, persisting the result. */
-  setEpisode: (conversationId, episode) => {
-    persist(conversationId, episode);
+  /** Replace one episode, persisting the result. */
+  setEpisode: (key, episode) => {
+    persist(key, episode);
     set((s) => {
       const episodes = { ...s.episodes };
-      if (episode) episodes[conversationId] = episode;
-      else delete episodes[conversationId];
+      if (episode) episodes[key] = episode;
+      else delete episodes[key];
       return { episodes };
     });
   },
 
-  open: (conversationId) => set({ openConvId: conversationId }),
-  close: () => set({ openConvId: null }),
+  open: (key) => set({ openKey: key }),
+  close: () => set({ openKey: null }),
 
   /**
    * Submit a new episode.
    *
+   * `focus` and `instruction` are mutually exclusive by mode and the service
+   * returns 400 if they are crossed, so only the one belonging to this mode is
+   * ever sent.
+   *
    * @param {object} params
    * @param {number|string} params.conversationId
+   * @param {"podcast"|"narration"} params.mode
    * @param {string[]} [params.documentIds]
    * @param {string} [params.text]
-   * @param {"vi"|"en"} params.language
-   * @param {string} [params.focus]
+   * @param {"male"|"female"} params.voiceGender - podcast: the host's voice
+   *   (the guest takes the other); narration: the reader's voice.
+   * @param {string} params.tone - Named preset id.
+   * @param {string} [params.focus] - podcast only, max 500 chars.
+   * @param {string} [params.instruction] - narration only, max 2000 chars.
    * @param {number} params.targetMinutes
    * @param {string} params.name - Display name for the list row.
    * @returns {Promise<string>} The task id.
    */
   submit: async ({
     conversationId,
+    mode = AUDIO_MODE.NARRATION,
     documentIds,
     text,
-    language,
+    voiceGender,
+    tone,
     focus,
+    instruction,
     targetMinutes,
     name,
   }) => {
-    const payload = { language, target_minutes: targetMinutes };
-    if (focus) payload.focus = focus;
+    const payload = {
+      language: "vi",
+      mode,
+      voice_gender: voiceGender,
+      tone,
+      target_minutes: targetMinutes,
+      // Phiên chat sở hữu tập này. Thiếu trường này thì tập rơi vào thư mục
+      // "no-session" trên MinIO và trace không gom được theo hội thoại — đo
+      // được đúng như vậy: `object_key` của mọi tập đều là
+      // "audio-overviews/no-session/...". Gửi trong BODY vì gateway của FE chỉ
+      // chuyển tiếp body, query param rụng ở đó.
+      conversation_id: conversationId == null ? undefined : String(conversationId),
+    };
+    if (mode === AUDIO_MODE.NARRATION) {
+      if (instruction) payload.instruction = instruction;
+    } else if (focus) {
+      payload.focus = focus;
+    }
     if (text) payload.text = text;
     if (documentIds?.length) payload.document_ids = documentIds;
 
@@ -176,27 +254,30 @@ const useAudioOverviewStore = create((set, get) => ({
       taskId: res?.task_id,
       status: AUDIO_STATUS.PROCESSING,
       submittedAt: Date.now(),
-      language,
+      language: "vi",
+      mode,
+      voiceGender,
+      tone,
       name,
       progress: null,
       result: null,
       error: null,
     };
-    get().setEpisode(conversationId, episode);
+    get().setEpisode(episodeKey(conversationId, mode), episode);
     return episode.taskId;
   },
 
   /** Record a progress tick without changing the terminal state. */
-  markProgress: (conversationId, progress) => {
-    const current = get().episodes[conversationId];
+  markProgress: (key, progress) => {
+    const current = get().episodes[key];
     if (!current || current.status !== AUDIO_STATUS.PROCESSING) return;
-    get().setEpisode(conversationId, { ...current, progress });
+    get().setEpisode(key, { ...current, progress });
   },
 
-  markComplete: (conversationId, result) => {
-    const current = get().episodes[conversationId];
+  markComplete: (key, result) => {
+    const current = get().episodes[key];
     if (!current) return;
-    get().setEpisode(conversationId, {
+    get().setEpisode(key, {
       ...current,
       status: AUDIO_STATUS.COMPLETED,
       progress: null,
@@ -204,20 +285,20 @@ const useAudioOverviewStore = create((set, get) => ({
     });
   },
 
-  markCancelled: (conversationId) => {
-    const current = get().episodes[conversationId];
+  markCancelled: (key) => {
+    const current = get().episodes[key];
     if (!current) return;
-    get().setEpisode(conversationId, {
+    get().setEpisode(key, {
       ...current,
       status: AUDIO_STATUS.CANCELLED,
       progress: null,
     });
   },
 
-  markError: (conversationId, message) => {
-    const current = get().episodes[conversationId];
+  markError: (key, message) => {
+    const current = get().episodes[key];
     if (!current) return;
-    get().setEpisode(conversationId, {
+    get().setEpisode(key, {
       ...current,
       status: AUDIO_STATUS.ERROR,
       progress: null,
@@ -232,8 +313,8 @@ const useAudioOverviewStore = create((set, get) => ({
    * cooperative, and claiming it happened before the service confirms would
    * leave a still-running task invisible. The poll reports the truth.
    */
-  cancel: async (conversationId) => {
-    const current = get().episodes[conversationId];
+  cancel: async (key) => {
+    const current = get().episodes[key];
     if (!current?.taskId) return;
     await cancelAudioOverview(current.taskId);
   },
@@ -244,14 +325,14 @@ const useAudioOverviewStore = create((set, get) => ({
    * Order matters: a 409 (still running) must leave the local row alone, or
    * the user loses their only handle on a task that is still burning GPU.
    */
-  remove: async (conversationId) => {
-    const current = get().episodes[conversationId];
+  remove: async (key) => {
+    const current = get().episodes[key];
     if (!current) return;
     if (current.taskId && current.status !== AUDIO_STATUS.ERROR) {
       await deleteAudioOverview(current.taskId);
     }
-    get().setEpisode(conversationId, null);
-    if (get().openConvId === conversationId) set({ openConvId: null });
+    get().setEpisode(key, null);
+    if (get().openKey === key) set({ openKey: null });
   },
 }));
 

@@ -65,13 +65,41 @@ module.exports = function (app) {
     })
   );
 
+  // /llm -> gateway, tổng quát. PHẢI đứng SAU '/llm/query/stream' ở trên:
+  // Express match theo thứ tự đăng ký, mount tổng quát đặt trước sẽ ăn luôn
+  // đường SSE và mất các header no-buffering của nó.
+  //
+  // Thiếu mount này là lý do nút mic không hoạt động: FE gọi
+  // `/llm/stt/transcribe` (prefix API_PREFIX.LLM) nhưng dev server không có
+  // route nào khớp nên Express trả 404 "Cannot POST /llm/stt/transcribe" —
+  // trước cả khi request tới gateway. `frontend-server/server.js` (đường
+  // production) vốn đã có mount này; hai file lẽ ra phải đồng bộ.
+  //
+  // Gateway include voice.router KHÔNG có prefix, route thật là
+  // `POST /stt/transcribe`, nên phải cắt `/llm` đi.
+  app.use(
+    '/llm',
+    createProxyMiddleware({
+      target: process.env.REACT_APP_DB_HOST,
+      changeOrigin: true,
+      pathRewrite: { '^/llm': '' },
+      logLevel: 'warn',
+    })
+  );
+
   // Tools proxy (/tools -> backend /tools/...)
   app.use(
     '/tools',
     createProxyMiddleware({
       target: process.env.REACT_APP_DB_HOST,
       changeOrigin: true,
-      pathRewrite: { '^/': '/tools/' },
+      // KHÔNG pathRewrite ở đây. `pathRewrite` của http-proxy-middleware 2.0.9
+      // nhận đường dẫn ĐẦY ĐỦ (`/tools/audio-overview`), không phải phần đã bị
+      // `app.use('/tools')` cắt — chính vì vậy `^/db` -> `/` ở trên mới chạy
+      // đúng. Bản cũ dùng `{'^/': '/tools/'}` với giả định ngược lại nên gateway
+      // nhận `/tools/tools/...` và trả 404 cho MỌI lời gọi tool từ trình duyệt
+      // (summary, mindmap, drafting, audio-overview). Gateway đã mong đúng
+      // `/tools/...` nên để nguyên là đúng.
       onProxyRes(proxyRes, req) {
         // Binary DOCX exports must stream, not buffer — a stale content-length
         // truncates the body. Audio-overview episodes are the same shape but far

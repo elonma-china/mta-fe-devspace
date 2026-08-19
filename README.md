@@ -14,7 +14,16 @@
 ### Khác gì bản thật
 
 1. **Nút mic** trong ô chat → ghi âm → STT → điền chữ vào ô nhập (không tự gửi).
-2. **Tổng quan âm thanh** — sinh podcast 2 người dẫn từ tài liệu, có player + transcript + huỷ/xoá.
+2. **Tổng quan âm thanh** — 2 kiểu nội dung, chọn được giọng và tông giọng; có player + transcript + huỷ/xoá.
+
+   | Kiểu | Kịch bản | Giọng |
+   |---|---|---|
+   | **Podcast 2 người dẫn** | hội thoại hỏi–đáp | chọn giọng người dẫn, khách mời tự lấy giọng còn lại |
+   | **Bản đọc theo yêu cầu** | 1 người đọc bản tóm tắt viết theo ô "Yêu cầu" | 1 giọng |
+
+   - **Giọng**: nam / nữ. **Tông giọng**: Trang trọng · Tự nhiên · Sôi nổi · Chậm rãi.
+   - **Chỉ tiếng Việt** — không còn lựa chọn ngôn ngữ; nhánh tiếng Anh đã gỡ khỏi cả 3 tầng.
+   - Mỗi sổ ghi chú giữ **1 tập mỗi kiểu** → podcast và bản đọc cùng tồn tại được.
 3. **Màu đỏ + logo DEV SPACE** — bật bởi `REACT_APP_BRAND=devspace`; bỏ biến này là về teal IntraMind.
 4. **Chặn ghi corpus** — `DEV_READONLY_CORPUS=true` khiến upload/xoá/xử-lý-lại tài liệu trả `403`.
    Kéo tài liệu thật vào hội thoại bằng **"Chọn từ kho"** (link-repository, không ghi upstream).
@@ -81,7 +90,7 @@ git diff 1814dd7..HEAD -- \
   > voice-rag-fe.patch
 ```
 
-3 điều phải nói kèm patch:
+5 điều phải nói kèm patch:
 
 1. **Không gửi `startTime`** khi poll audio-overview. Tập xong **không có** field
    `status`, mà `_apply_zombie_check` đọc body không có `status` là "kẹt" → quá
@@ -94,6 +103,18 @@ git diff 1814dd7..HEAD -- \
    `info_table_type_check` chỉ cho 4 type. Muốn đưa vào DB thì cần `migrate_011.sql`.
 
 ---
+
+4. **Submit audio-overview KHÔNG đi qua catch-all `/tools/{tool}`.** Catch-all trả
+   `parsed` mà không kiểm `upstream.status_code`, nên lỗi 422 của AI về trình duyệt
+   thành **HTTP 200 kèm lỗi trong body** — FE đọc `ApiError.status` nên coi là thành
+   công rồi poll một `task_id` `undefined` mãi mãi. Đã khai route tường minh
+   `POST /tools/audio-overview` phía trên catch-all (`backend-fastapi/app/routes/llm.py`).
+   Các tool khác vẫn giữ hành vi cũ — sửa catch-all là đổi hành vi của cả 4 tool.
+5. **Khoá localStorage là `im.audioOverview.<convId>.<mode>`.** Bản trước khoá theo
+   hội thoại; `hydrate` có bước migration chuyển khoá cũ sang slot `podcast`. **Đừng
+   bỏ bước đó** — một tập chạy 45 phút mà handle duy nhất là cái khoá này, đổi tên
+   khoá mà không chuyển giá trị sẽ bỏ rơi job đang chạy: không thấy, không huỷ được,
+   vẫn đang render.
 
 ## Kiến trúc gốc (kế thừa từ mta-fe-intramind)
 

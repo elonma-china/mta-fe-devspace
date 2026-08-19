@@ -201,3 +201,73 @@ def test_audio_overview_routes_are_declared_before_the_tool_catch_all():
         "/tools/audio-overview/{task_id}",
     ):
         assert paths.index(path) < catch_all, f"{path} declared too late"
+
+
+# ── Submit: the upstream status must survive the proxy ──────────────
+
+
+def _upstream(status_code: int, payload):
+    """A stand-in httpx response for the AI service."""
+    import json as _json
+
+    resp = MagicMock()
+    resp.status_code = status_code
+    resp.text = _json.dumps(payload)
+    return resp
+
+
+def _patched_post(resp):
+    """Patch the AsyncClient used by the submit proxy to return `resp`."""
+    client = MagicMock()
+    client.post = AsyncMock(return_value=resp)
+    ctx = MagicMock()
+    ctx.__aenter__ = AsyncMock(return_value=client)
+    ctx.__aexit__ = AsyncMock(return_value=False)
+    return patch.object(llm.httpx, "AsyncClient", MagicMock(return_value=ctx))
+
+
+def test_submit_forwards_success(client):
+    with _patched_post(_upstream(200, {"task_id": "t1", "status": "submitted"})):
+        r = client.post(
+            "/tools/audio-overview",
+            json={"document_ids": ["d1"], "mode": "podcast", "voice_gender": "male"},
+        )
+    assert r.status_code == 200
+    assert r.json()["task_id"] == "t1"
+
+
+def test_submit_preserves_a_422_instead_of_returning_200(client):
+    """The whole reason this route exists.
+
+    The `/tools/{tool_name}` catch-all returns `parsed` without looking at
+    `upstream.status_code`, so a validation error came back as HTTP 200 with
+    the error in the body. The FE keys off `ApiError.status`, so a 200 means
+    the modal closes and the store polls an undefined task_id forever.
+    """
+    detail = [{"loc": ["body", "tone"], "msg": "input không hợp lệ"}]
+    with _patched_post(_upstream(422, {"detail": detail})):
+        r = client.post(
+            "/tools/audio-overview",
+            json={"document_ids": ["d1"], "tone": "nonsense"},
+        )
+    assert r.status_code == 422
+
+
+def test_submit_flattens_fastapi_list_detail_into_a_string(client):
+    """A list detail reaches the FE's message field as "[object Object]"."""
+    detail = [{"loc": ["body", "tone"], "msg": "input không hợp lệ"}]
+    with _patched_post(_upstream(422, {"detail": detail})):
+        r = client.post("/tools/audio-overview", json={"document_ids": ["d1"]})
+    body_detail = r.json()["detail"]
+    assert isinstance(body_detail, str)
+    assert "tone" in body_detail and "input không hợp lệ" in body_detail
+
+
+def test_submit_preserves_a_400_from_the_mode_contract(client):
+    with _patched_post(_upstream(400, {"detail": "'focus' chỉ dùng cho mode='podcast'"})):
+        r = client.post(
+            "/tools/audio-overview",
+            json={"document_ids": ["d1"], "mode": "narration", "focus": "x"},
+        )
+    assert r.status_code == 400
+    assert "podcast" in r.json()["detail"]

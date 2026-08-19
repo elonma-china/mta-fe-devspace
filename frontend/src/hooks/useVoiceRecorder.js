@@ -84,6 +84,15 @@ export function useVoiceRecorder({ onComplete } = {}) {
 
   const streamRef = useRef(null);
   const contextRef = useRef(null);
+  /**
+   * AnalyserNode của lượt ghi hiện tại, hoặc null.
+   *
+   * Phơi qua REF chứ không qua state có chủ đích: bộ vẽ phổ đọc nó trong
+   * requestAnimationFrame ~60 lần/giây. Nếu đưa vào state thì mỗi khung là
+   * một lần render toàn bộ cây chat — treo máy vì một hiệu ứng trang trí.
+   */
+  const analyserRef = useRef(null);
+
   const nodesRef = useRef([]);
   const chunksRef = useRef([]);
   const workletUrlRef = useRef(null);
@@ -104,6 +113,7 @@ export function useVoiceRecorder({ onComplete } = {}) {
    * and never throws.
    */
   const teardown = useCallback(() => {
+    analyserRef.current = null;
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
@@ -224,6 +234,15 @@ export function useVoiceRecorder({ onComplete } = {}) {
       const source = context.createMediaStreamSource(stream);
       const collect = (samples) => chunksRef.current.push(samples);
 
+      // Nhánh riêng cho việc hiển thị: analyser chỉ ĐỌC tín hiệu, không nằm
+      // trên đường thu, nên có hay không cũng không ảnh hưởng dữ liệu gửi lên
+      // STT. fftSize 512 -> 256 bin, đủ mịn cho một dải cột mà vẫn rẻ.
+      const analyser = context.createAnalyser();
+      analyser.fftSize = 512;
+      analyser.smoothingTimeConstant = 0.6;
+      source.connect(analyser);
+      analyserRef.current = analyser;
+
       if (context.audioWorklet) {
         const blob = new Blob([PCM_WORKLET_SOURCE], {
           type: "application/javascript",
@@ -236,7 +255,7 @@ export function useVoiceRecorder({ onComplete } = {}) {
         source.connect(worklet);
         // Not connected to the destination: routing the mic to the speakers
         // is a feedback loop, and the worklet pulls without it.
-        nodesRef.current = [source, worklet];
+        nodesRef.current = [source, worklet, analyser];
       } else {
         // Safari < 14.1 and friends. Deprecated, but the alternative here is
         // no microphone at all.
@@ -245,7 +264,7 @@ export function useVoiceRecorder({ onComplete } = {}) {
           collect(new Float32Array(event.inputBuffer.getChannelData(0)));
         source.connect(processor);
         processor.connect(context.destination);
-        nodesRef.current = [source, processor];
+        nodesRef.current = [source, processor, analyser];
       }
     } catch {
       fail("generic");
@@ -270,6 +289,8 @@ export function useVoiceRecorder({ onComplete } = {}) {
     state,
     elapsedSeconds,
     error,
+    /** Ref tới AnalyserNode để vẽ phổ; null khi không ghi. */
+    analyserRef,
     isSupported: isRecordingSupported(),
     start,
     stop,

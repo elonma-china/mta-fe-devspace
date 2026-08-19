@@ -40,6 +40,14 @@ export const transcribeVoice = (blob, language = "vi", { signal } = {}) => {
  * @returns {string} Vietnamese message.
  */
 export const sttErrorMessage = (error) => {
+  // Ưu tiên `detail` của server khi nó là một câu tiếng Việt hoàn chỉnh: 422
+  // gộp nhiều nguyên nhân rất khác nhau — file rác, đoạn ghi quá ngắn, không
+  // nghe ra nội dung — và mỗi nguyên nhân cần người dùng làm một việc khác.
+  // Một câu "Không đọc được đoạn ghi âm" chung chung không nói cho họ biết là
+  // phải bấm giữ lâu hơn hay nói to hơn.
+  const detail = typeof error?.detail === "string" ? error.detail.trim() : "";
+  if (detail && detail.length <= 200 && /[a-zà-ỹ]/i.test(detail)) return detail;
+
   switch (error?.status) {
     case 403:
       return "Tính năng nhận dạng giọng nói đang tắt trên máy chủ.";

@@ -113,3 +113,12 @@
   font-size: var(--font-size-xs);
   line-height: 1.4;
 }
+
+/* Khung chứa phổ âm thanh khi đang ghi. Chiều rộng cố định để đồng hồ bên phải
+   không nhảy chỗ theo từng khung vẽ. */
+.ci-mic-wave {
+  display: inline-block;
+  width: 84px;
+  height: 24px;
+  flex: 0 0 auto;
+}

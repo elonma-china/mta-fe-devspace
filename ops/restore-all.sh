@@ -76,15 +76,23 @@ if alive 15003; then echo "  đã sống, bỏ qua"; else
     env PATH="$DEV/bin:$PATH" \
       EMBEDDING_DEVICE=cpu HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 \
       ENABLE_RERANKER=false \
-      ENABLE_TTS=true TTS_ENGINE_VI=piper_vi TTS_ENGINE_EN=piper_en_amy_low \
+      ENABLE_TTS=true \
+      TTS_VOICE_VI_FEMALE=piper_vi_female TTS_VOICE_VI_MALE=piper_vi_male \
+      TTS_VOICE_VI_MALE_SID=38 TTS_OUTPUT_SAMPLE_RATE=22050 \
       TTS_MODEL_DIR="$DEV/models/tts" TTS_DEVICE=cpu TTS_NUM_THREADS=2 \
-      ENABLE_STT=true STT_ENGINE_VI=sherpa_vi_30m STT_ENGINE_EN=moonshine_tiny_en \
-      STT_MODEL_DIR="$DEV/models/stt" STT_DEVICE=cuda STT_NUM_THREADS=2 \
+      ENABLE_STT=true STT_ENGINE_VI=sherpa_vi_30m \
+      STT_MODEL_DIR="$DEV/models/stt" STT_DEVICE=cpu STT_NUM_THREADS=2 \
       setsid -f .venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port 15003 \
       </dev/null >>"$DEV/logs/serving-voice.log" 2>&1 )
   wait_health 15003 240 || exit 1
-  curl -s -m 5 localhost:15003/api/v1/voices | grep -q '"vi"' \
-    && echo "  giọng vi+en đã nạp" || warn "/voices RỖNG — kiểm TTS_MODEL_DIR"
+  # Chỉ tiếng Việt, nhưng phải đủ HAI giọng: podcast 2 người dẫn cần cả nam
+  # lẫn nữ, thiếu giọng nào thì tập cần giọng đó fail 503 ngay ở lượt đầu.
+  VOICES=$(curl -s -m 5 localhost:15003/api/v1/voices)
+  echo "$VOICES" | grep -q '"vi_female"' \
+    && echo "  giọng nữ đã nạp" || warn "/voices thiếu vi_female — kiểm TTS_MODEL_DIR"
+  echo "$VOICES" | grep -q '"vi_male"' \
+    && echo "  giọng nam đã nạp" \
+    || warn "thiếu vi_male — chạy voice_model_download.sh (bundle vivos); podcast 2 giọng sẽ lỗi"
 fi
 
 log "DEV 2/2 — AI :15001 + worker (chỉ queue audio_overview)"

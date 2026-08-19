@@ -14,7 +14,14 @@ const formatDuration = (seconds) => {
 const formatSize = (bytes) =>
   bytes ? `${(bytes / (1024 * 1024)).toFixed(1)} MB` : "—";
 
-const SPEAKER_LABELS = { host: "Người dẫn", guest: "Khách mời" };
+const SPEAKER_LABELS = {
+  host: "Người dẫn",
+  guest: "Khách mời",
+  narrator: "Người đọc",
+};
+
+/** Voice + tone, for telling two episodes of the same notebook apart. */
+const VOICE_LABELS = { male: "giọng nam", female: "giọng nữ" };
 
 /**
  * Play a finished episode and show its transcript.
@@ -75,6 +82,21 @@ export default function AudioOverviewPanel({ episode, onClose, onDelete }) {
 
   if (!episode) return null;
 
+  // `mode` is absent on episodes persisted before the two-mode split, so an
+  // old localStorage entry must still render rather than crash.
+  const turns = result.transcript || [];
+  const isNarration =
+    (episode.mode || result?.metadata?.mode) === "narration" ||
+    (turns.length > 0 && turns.every((t) => t.speaker === "narrator"));
+  const voiceLabel =
+    VOICE_LABELS[episode.voiceGender || result?.metadata?.voice_gender];
+  const toneLabel = result?.metadata?.tone_label;
+  // Tài liệu dài bị nén để vừa ngữ cảnh LLM. Nén là hành vi hợp lý, nhưng phải
+  // NHÌN THẤY ĐƯỢC: bản trước cắt cụt nguồn và chỉ ghi một cờ `truncated` vào
+  // metadata mà không nơi nào ở giao diện đọc, nên người dùng nhận một bản tóm
+  // tắt thiếu tài liệu mà không hề biết.
+  const compacted = result?.metadata?.sources?.compacted || [];
+
   return (
     <section className="ao-panel" aria-label="Tổng quan âm thanh">
       <header className="ao-panel-head">
@@ -90,6 +112,18 @@ export default function AudioOverviewPanel({ episode, onClose, onDelete }) {
                 <span className="ao-panel-badge">
                   {String(result.audio_format).toUpperCase()}
                 </span>
+              </>
+            )}
+            {voiceLabel && (
+              <>
+                <span className="ao-panel-dot">·</span>
+                <span>{voiceLabel}</span>
+              </>
+            )}
+            {toneLabel && (
+              <>
+                <span className="ao-panel-dot">·</span>
+                <span>{toneLabel}</span>
               </>
             )}
           </div>
@@ -109,6 +143,13 @@ export default function AudioOverviewPanel({ episode, onClose, onDelete }) {
         </div>
       </header>
 
+      {compacted.length > 0 && (
+        <p className="ao-panel-note">
+          Đã nén {compacted.length} tài liệu dài để vừa ngữ cảnh:{" "}
+          {compacted.map((c) => c.name).filter(Boolean).join(", ")}.
+        </p>
+      )}
+
       {error ? (
         <p className="ao-panel-error" role="alert">
           {error}
@@ -122,15 +163,21 @@ export default function AudioOverviewPanel({ episode, onClose, onDelete }) {
       )}
 
       <div className="ao-transcript">
-        <h3 className="ao-transcript-title">Lời thoại</h3>
+        <h3 className="ao-transcript-title">
+          {isNarration ? "Nội dung" : "Lời thoại"}
+        </h3>
         {(result.transcript || []).map((turn, i) => (
           <div
             className={`ao-turn ao-turn--${turn.speaker || "host"}`}
             key={`turn-${i}`}
           >
-            <span className="ao-turn-speaker">
-              {SPEAKER_LABELS[turn.speaker] || turn.speaker}
-            </span>
+            {/* A single-voice reading gets no speaker chips: a column of
+                identical "Người đọc" labels is noise, not information. */}
+            {!isNarration && (
+              <span className="ao-turn-speaker">
+                {SPEAKER_LABELS[turn.speaker] || turn.speaker}
+              </span>
+            )}
             <p className="ao-turn-text">{turn.text}</p>
           </div>
         ))}

@@ -1,0 +1,12 @@
+/* src/features/chat/components/VoiceWaveform.css
+   Chỉ dùng token — skin đỏ Dev Space đổi token, hardcode màu là phạm luật
+   project và làm phổ lệch màu thương hiệu. */
+
+.vw-canvas {
+  display: block;
+  width: 100%;
+  height: 24px;
+  /* Canvas không kế thừa được biến CSS vào ngữ cảnh vẽ; khai ở đây để
+     getComputedStyle trong component đọc ra đúng token đang hiệu lực. */
+  color: var(--brand-primary);
+}

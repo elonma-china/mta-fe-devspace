@@ -82,9 +82,16 @@ for i in $(seq 1 60); do
 done
 
 # The voice routes are the whole point; a 200 on /health with no engines
-# loaded is a silent failure, so check the real endpoint.
-curl -fsS "http://localhost:$SERVING_PORT/api/v1/voices" \
-  | grep -q '"vi"' || die "no Vietnamese TTS voice loaded — check TTS_MODEL_DIR"
+# loaded is a silent failure, so check the real endpoint. Grep for the voice
+# ids rather than just '"vi"' — that 4-character match would pass on any
+# payload mentioning the language.
+VOICES=$(curl -fsS "http://localhost:$SERVING_PORT/api/v1/voices")
+echo "$VOICES" | grep -q '"vi_female"' \
+  || die "no Vietnamese TTS voice loaded — check TTS_MODEL_DIR"
+# A warning, not a die: female-only is a usable system, it just cannot render
+# a two-host podcast.
+echo "$VOICES" | grep -q '"vi_male"' \
+  || echo "WARN: giọng nam chưa nạp — chạy docker/voice_model_download.sh (bundle vivos)"
 
 # ── 4. AI voice + worker ─────────────────────────────────────────────
 log "starting ai-voice on :$AI_PORT"

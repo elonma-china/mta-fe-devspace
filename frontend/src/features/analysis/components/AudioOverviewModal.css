@@ -86,13 +86,16 @@
   font-variant-numeric: tabular-nums;
 }
 
-.ao-langs {
+.ao-choices {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-sm);
 }
 
-.ao-lang {
-  flex: 1;
+.ao-choice {
+  /* flex-basis keeps four tone chips on one row on a normal modal width and
+     lets them wrap rather than squeeze on a narrow one. */
+  flex: 1 1 6rem;
   padding: var(--space-sm) var(--space-md);
   border: 1px solid var(--border-neutral-secondary);
   border-radius: var(--radius-md);
@@ -102,7 +105,7 @@
   cursor: pointer;
 }
 
-.ao-lang.is-active {
+.ao-choice.is-active {
   border-color: var(--brand-primary);
   background: var(--bg-tertiary);
   color: var(--brand-primary);
@@ -131,6 +134,7 @@
 }
 
 .ao-hint {
+  display: block;
   margin: 0;
   font-size: var(--font-size-xs);
   color: var(--txt-neutral-tertiary);

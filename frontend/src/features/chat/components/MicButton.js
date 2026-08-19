@@ -7,6 +7,7 @@ import {
   MAX_SECONDS,
 } from "hooks/useVoiceRecorder";
 import { transcribeVoice, sttErrorMessage } from "../api/stt";
+import VoiceWaveform from "./VoiceWaveform";
 
 /** mm:ss for the recording timer. */
 const formatElapsed = (seconds) => {
@@ -24,11 +25,16 @@ const formatElapsed = (seconds) => {
  *
  * @param {object} props
  * @param {(text: string) => void} props.onTranscribed - Receives the text.
+ * @param {() => void} [props.onRecordStart] - Fired when recording starts, so
+ *   the caller can clear the previous result. Nói lại lần hai mà bản đọc cũ
+ *   còn nằm trong ô nhập thì hai lần dính vào nhau — đó là lý do prop này tồn
+ *   tại, không phải để trang trí.
  * @param {boolean} [props.disabled] - Mirrors the send button's disabled state.
  * @param {"vi"|"en"} [props.language] - STT engine to use.
  */
 export default function MicButton({
   onTranscribed,
+  onRecordStart,
   disabled = false,
   language = "vi",
 }) {
@@ -62,8 +68,16 @@ export default function MicButton({
     [language, onTranscribed]
   );
 
-  const { state, elapsedSeconds, error, isSupported, start, stop, reset } =
-    useVoiceRecorder({ onComplete: handleBlob });
+  const {
+    state,
+    elapsedSeconds,
+    error,
+    analyserRef,
+    isSupported,
+    start,
+    stop,
+    reset,
+  } = useVoiceRecorder({ onComplete: handleBlob });
 
   const isRecording = state === RECORDER_STATE.RECORDING;
   const isBusy =
@@ -78,8 +92,15 @@ export default function MicButton({
       reset();
       return;
     }
-    if (isRecording) stop();
-    else start();
+    if (isRecording) {
+      stop();
+      return;
+    }
+    // Xoá kết quả cũ NGAY khi bắt đầu ghi, không đợi tới lúc có bản đọc mới:
+    // người dùng thấy ô nhập trống là biết lần này ghi đè, và nếu lượt ghi bị
+    // huỷ giữa chừng thì cũng không còn bản đọc cũ gây hiểu nhầm.
+    onRecordStart?.();
+    start();
   };
 
   // An unsupported context is a fact about the page, not a transient error:
@@ -113,9 +134,17 @@ export default function MicButton({
       </button>
 
       {isRecording && (
-        <span className="ci-mic-timer" role="timer">
-          {formatElapsed(elapsedSeconds)}
-        </span>
+        <>
+          {/* Phổ âm thanh: phản hồi duy nhất cho câu hỏi "máy có nghe thấy
+              tôi không". Đặt cạnh đồng hồ vì hai thông tin này luôn được đọc
+              cùng nhau — còn bao lâu, và có đang thu được tiếng. */}
+          <span className="ci-mic-wave">
+            <VoiceWaveform analyserRef={analyserRef} active={isRecording} />
+          </span>
+          <span className="ci-mic-timer" role="timer">
+            {formatElapsed(elapsedSeconds)}
+          </span>
+        </>
       )}
       {message && (
         <span className="ci-mic-error" role="alert">

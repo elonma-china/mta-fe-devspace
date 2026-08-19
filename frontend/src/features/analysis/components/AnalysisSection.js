@@ -12,7 +12,10 @@ import { InfoPanel, TemplatePickerModal, DraftUploadModal } from ".";
 import AudioOverviewModal from "./AudioOverviewModal";
 import AudioOverviewPanel from "./AudioOverviewPanel";
 import { AudioOverviewCard, AudioOverviewItem } from "./AudioOverviewTool";
-import useAudioOverviewStore from "stores/useAudioOverviewStore";
+import useAudioOverviewStore, {
+  AUDIO_MODES,
+  episodeKey,
+} from "stores/useAudioOverviewStore";
 import {
   getSummaryStatus,
   getMindmapStatus,
@@ -93,12 +96,16 @@ export default function AnalysisSection({ onCreated, onRemoved }) {
   // (orm.py info_table_type_check) permits only summary/mindmap/report/
   // directive_review, so persisting an episode there needs a migration.
   // Its own store + localStorage avoids forcing that on the FE team's merge.
-  const audioEpisode = useAudioOverviewStore(
-    (s) => s.episodes[conversationId]
+  // Episodes are keyed by conversation AND mode, so one notebook can hold a
+  // podcast and a reading at the same time — they answer different questions.
+  const audioOpenKey = useAudioOverviewStore((s) => s.openKey);
+  const audioEpisode = useAudioOverviewStore((s) =>
+    s.openKey ? s.episodes[s.openKey] : null
   );
-  const audioOpen = useAudioOverviewStore(
-    (s) => s.openConvId === conversationId && conversationId != null
-  );
+  const audioOpen =
+    conversationId != null &&
+    !!audioOpenKey &&
+    String(audioOpenKey).startsWith(`${conversationId}:`);
   const audioStore = useAudioOverviewStore;
 
   useEffect(() => {
@@ -439,6 +446,31 @@ export default function AnalysisSection({ onCreated, onRemoved }) {
   };
 
   // ── Audio overview handlers ──
+  /**
+   * Lý do lỗi để hiện cho người dùng, ưu tiên nguyên văn của server.
+   *
+   * Đường audio-overview có nhiều mã lỗi mang nghĩa RẤT khác nhau và mỗi mã
+   * đòi người dùng làm một việc khác: 400 = trường sai hợp đồng, 403 = tính
+   * năng tắt, 409 = tập đang chạy, 413/422 = đầu vào không hợp lệ, 502/503 =
+   * hạ tầng. Gộp tất cả thành "Không thể khởi tạo" thì người dùng không biết
+   * nên sửa lựa chọn, đợi, hay gọi quản trị.
+   */
+  const audioErrorMessage = (e, fallback) => {
+    const detail = typeof e?.detail === "string" ? e.detail.trim() : "";
+    if (detail && detail.length <= 300) return detail;
+    switch (e?.status) {
+      case 403:
+        return "Tính năng tổng quan âm thanh đang tắt trên máy chủ.";
+      case 409:
+        return "Tập đang được tạo. Huỷ trước rồi thử lại.";
+      case 502:
+      case 503:
+        return "Máy chủ xử lý âm thanh chưa sẵn sàng. Thử lại sau.";
+      default:
+        return fallback;
+    }
+  };
+
   const handleAudioOverview = () => {
     if (!conversationId) {
       showModal(AlertModal, {
@@ -447,65 +479,89 @@ export default function AnalysisSection({ onCreated, onRemoved }) {
       });
       return;
     }
-    if (audioEpisode) {
-      showModal(AlertModal, {
-        title: "Đã có tập podcast",
-        message:
-          "Mỗi sổ ghi chú giữ một tập. Xoá tập hiện tại trước khi tạo tập mới.",
-      });
-      return;
-    }
     showModal(AudioOverviewModal, {
       documentCount: selectedDocumentIds.length,
-      onSubmit: async ({ language, focus, targetMinutes }) => {
+      onSubmit: async ({
+        mode,
+        voiceGender,
+        tone,
+        focus,
+        instruction,
+        targetMinutes,
+      }) => {
+        // One in-flight episode PER MODE, not per notebook: checked here
+        // rather than before the modal so the user picks a mode first and
+        // only then learns that that particular slot is taken.
+        const key = episodeKey(conversationId, mode);
+        if (audioStore.getState().episodes[key]) {
+          showModal(AlertModal, {
+            title: "Đã có tập",
+            message:
+              "Mỗi sổ ghi chú giữ một tập cho mỗi kiểu nội dung. Xoá tập cùng kiểu trước khi tạo tập mới.",
+          });
+          return;
+        }
         const firstDoc = docsState.find(
           (d) => String(d.id) === String(selectedDocumentIds[0])
         );
+        const prefix = mode === "narration" ? "Bản đọc" : "Podcast";
         try {
           await audioStore.getState().submit({
             conversationId,
+            mode,
             documentIds: selectedDocumentIds,
-            language,
+            voiceGender,
+            tone,
             focus,
+            instruction,
             targetMinutes,
-            name: `Podcast — ${firstDoc?.name || "Tài liệu"}`,
+            name: `${prefix} — ${firstDoc?.name || "Tài liệu"}`,
           });
         } catch (e) {
           showModal(AlertModal, {
-            title: "Lỗi xử lý",
-            message:
-              e?.status === 403
-                ? "Tính năng tổng quan âm thanh đang tắt trên máy chủ."
-                : "Không thể khởi tạo tập podcast.",
+            title: "Không tạo được podcast",
+            message: audioErrorMessage(e, "Không thể khởi tạo tập podcast."),
           });
         }
       },
     });
   };
 
-  const handleAudioCancel = async () => {
+  const handleAudioCancel = async (_episode, key) => {
     try {
-      await audioStore.getState().cancel(conversationId);
-    } catch {
-      // Cancellation is cooperative; the poll reports the real outcome. A
-      // failed request here must not fake a cancelled state.
+      await audioStore.getState().cancel(key);
+    } catch (e) {
+      // KHÔNG đổi trạng thái local: huỷ là hợp tác, vòng poll mới là nơi báo
+      // kết quả thật. Nhưng vẫn phải NÓI cho người dùng biết yêu cầu huỷ đã
+      // không tới được server — bản trước nuốt lặng, nên người dùng bấm Huỷ,
+      // thấy tập vẫn chạy, và không hiểu vì sao.
+      showModal(AlertModal, {
+        title: "Chưa huỷ được",
+        message: audioErrorMessage(
+          e,
+          "Không gửi được yêu cầu huỷ. Tập có thể vẫn đang chạy — thử lại."
+        ),
+      });
     }
   };
 
-  const handleAudioDelete = () => {
+  const handleAudioDelete = (_episode, key) => {
+    const targetKey = key || audioStore.getState().openKey;
     showModal(DeleteModal, {
-      title: "Xoá tập podcast",
-      message: "Bạn chắc chắn muốn xoá tập podcast này?",
+      title: "Xoá tập",
+      message: "Bạn chắc chắn muốn xoá tập này?",
       onConfirm: async () => {
         try {
-          await audioStore.getState().remove(conversationId);
+          await audioStore.getState().remove(targetKey);
         } catch (e) {
           showModal(AlertModal, {
             title: "Chưa xoá được",
-            message:
+            message: audioErrorMessage(
+              e,
               e?.status === 409
                 ? "Tập đang được tạo. Huỷ trước rồi xoá."
-                : "Không xoá được tập podcast.",
+                : "Không xoá được tập podcast."
+            ),
           });
           return;
         }
@@ -565,12 +621,15 @@ export default function AnalysisSection({ onCreated, onRemoved }) {
             <AudioOverviewCard onClick={handleAudioOverview} />
           </div>
           <div className="ap-list">
-            <AudioOverviewItem
-              conversationId={conversationId}
-              onOpen={(id) => audioStore.getState().open(id)}
-              onRequestCancel={handleAudioCancel}
-              onRequestDelete={handleAudioDelete}
-            />
+            {AUDIO_MODES.map((mode) => (
+              <AudioOverviewItem
+                key={mode}
+                episodeKey={episodeKey(conversationId, mode)}
+                onOpen={(k) => audioStore.getState().open(k)}
+                onRequestCancel={handleAudioCancel}
+                onRequestDelete={handleAudioDelete}
+              />
+            ))}
             {combined.map((item) => {
               const meta = typeMap[item.type] || {};
               const isProcessing =

@@ -58,9 +58,11 @@ app.use('/llm', createProxyMiddleware({
 }));
 
 // 3. Tool Proxy (/tools -> backend /tools/...)
-// pathRewrite re-adds the /tools prefix stripped by the mount.
+// KHÔNG pathRewrite: `pathRewrite` của http-proxy-middleware 2.0.9 nhận đường
+// dẫn ĐẦY ĐỦ (`/tools/x`), không phải phần đã bị mount cắt — xem chú thích dài
+// trong frontend/src/setupProxy.js. `{'^/': '/tools/'}` làm gateway nhận
+// `/tools/tools/x` -> 404 cho mọi tool.
 app.use('/tools', createProxyMiddleware({
-  pathRewrite: { '^/': '/tools/' },
   ...commonProxyOptions,
   onProxyRes: (proxyRes, req) => {
     // Binary DOCX exports must stream, not buffer — a stale content-length

@@ -7,14 +7,28 @@ import { API_PREFIX } from "config";
  *
  * @param {object} payload
  * @param {string} [payload.text] - Raw text to narrate.
- * @param {string[]} [payload.document_ids] - Source documents; one of these
- *   or `text` is required.
- * @param {"vi"|"en"} payload.language
- * @param {string} [payload.focus] - Optional steer, max 500 chars.
+ * @param {string[]} [payload.document_ids] - Source documents (max 5); one of
+ *   these or `text` is required.
+ * @param {string} [payload.conversation_id] - Chat session that owns the
+ *   episode; drives the MinIO object key and trace grouping.
+ * @param {"vi"} payload.language - Vietnamese only.
+ * @param {"podcast"|"narration"} [payload.mode] - Two hosts, or one reader.
+ * @param {"male"|"female"} [payload.voice_gender] - podcast: the host's voice
+ *   (the guest takes the other); narration: the reader's voice.
+ * @param {"trang_trong"|"tu_nhien"|"soi_noi"|"cham_rai"} [payload.tone]
+ * @param {string} [payload.focus] - podcast ONLY, max 500 chars. Sending it on
+ *   a narration is a 400, not a silent no-op.
+ * @param {string} [payload.instruction] - narration ONLY, max 2000 chars.
  * @param {number} [payload.target_minutes] - 1..30.
  * @param {object} [options]
  * @param {AbortSignal} [options.signal]
  * @returns {Promise<{task_id: string, status: string, timestamp: string}>}
+ */
+/*
+ * Submit goes through the gateway's explicit /tools/audio-overview route, not
+ * the /tools/{tool} catch-all: the catch-all returns an upstream error body
+ * with HTTP 200, which `ApiError` never sees, so a rejected mode/tone/voice
+ * would look like a successful submit with an undefined task_id.
  */
 export const submitAudioOverview = (payload, { signal } = {}) =>
   apiClient.post("/audio-overview", payload, {

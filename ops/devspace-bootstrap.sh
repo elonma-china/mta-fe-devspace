@@ -105,9 +105,14 @@ TRANSFORMERS_OFFLINE=1
 # reranks via the live :5003 instead.
 ENABLE_RERANKER=false
 
+# Chỉ tiếng Việt. HAI giọng vì không model Piper VI nào có cả nam lẫn nữ:
+#   vi_female = vais1000-medium (1 speaker, 22050 Hz)
+#   vi_male   = vivos-x_low     (65 speaker, 16000 Hz) — sid chọn bằng audition F0
 ENABLE_TTS=true
-TTS_ENGINE_VI=piper_vi
-TTS_ENGINE_EN=piper_en_amy_low
+TTS_VOICE_VI_FEMALE=piper_vi_female
+TTS_VOICE_VI_MALE=piper_vi_male
+TTS_VOICE_VI_MALE_SID=38
+TTS_OUTPUT_SAMPLE_RATE=22050
 TTS_MODEL_DIR=$ROOT/models/tts
 TTS_DEVICE=cpu
 TTS_NUM_THREADS=2
@@ -115,9 +120,9 @@ TTS_MAX_TEXT_CHARS=2000
 
 ENABLE_STT=true
 STT_ENGINE_VI=sherpa_vi_30m
-STT_ENGINE_EN=moonshine_tiny_en
 STT_MODEL_DIR=$ROOT/models/stt
-STT_DEVICE=cuda
+# GPU không nhanh hơn CPU với model int8 nhỏ (đo thật trên 4090) — để cpu.
+STT_DEVICE=cpu
 STT_NUM_THREADS=2
 STT_MAX_AUDIO_BYTES=26214400
 EOF

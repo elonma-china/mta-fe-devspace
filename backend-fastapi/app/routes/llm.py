@@ -671,15 +671,16 @@ async def directive_review_export_proxy(
 
 
 # ── Audio overview (Dev Space) ──────────────────────────────────────
-# Submit and status already work through the generic proxies below:
-# `/tools/{tool_name}` forwards the JSON body untouched, and
-# `ToolStatusResponse` sets extra="allow" so object_key / transcript /
-# duration_sec / audio_format / size_bytes survive the round trip.
+# Status still rides the generic proxy below — `ToolStatusResponse` sets
+# extra="allow" so object_key / transcript / duration_sec / audio_format /
+# size_bytes survive the round trip.
 #
-# These three do not, and each for its own reason: the file route returns
-# binary, and cancel/delete are three-segment paths the catch-all's shape
-# does not cover. Declared here, above the catch-all, per the invariant
-# stated at the top of the directive-review block.
+# Everything else is declared here, above the catch-all, each for its own
+# reason: the file route returns binary, cancel/delete are three-segment
+# paths the catch-all's shape does not cover, and SUBMIT needs the upstream
+# status code preserved (the catch-all returns a 422 body as HTTP 200 — see
+# audio_overview_submit_proxy). Per the invariant stated at the top of the
+# directive-review block.
 #
 # CALLER WARNING — do not send `startTime` when polling audio-overview
 # status. A finished AudioOverviewResponse carries no `status` field, and
@@ -886,6 +887,104 @@ async def audio_overview_delete_proxy(
     return await _audio_overview_action(
         request, task_id, "DELETE", "", "audio-overview/delete"
     )
+
+
+def _flatten_detail(detail) -> str:
+    """Render an upstream `detail` as text the UI can actually display.
+
+    FastAPI's 422 detail is a LIST of dicts, and the frontend assigns
+    `errorBody.detail` straight into a message string — a list arrives as
+    "[object Object]". Flatten it here, at the one place that knows the
+    upstream is FastAPI, rather than teaching every caller both shapes.
+    """
+    if isinstance(detail, list):
+        parts = []
+        for item in detail:
+            if isinstance(item, dict):
+                field = ".".join(str(x) for x in item.get("loc", []) if x != "body")
+                msg = item.get("msg", "giá trị không hợp lệ")
+                parts.append(f"{field}: {msg}" if field else str(msg))
+            else:
+                parts.append(str(item))
+        return "; ".join(parts)
+    return detail if isinstance(detail, str) else str(detail)
+
+
+@router.post("/tools/audio-overview")
+async def audio_overview_submit_proxy(
+    request: Request,
+    _user: dict = Depends(get_current_user),
+):
+    """Submit an episode render, preserving the upstream status code.
+
+    Declared explicitly ABOVE the `/tools/{tool_name}` catch-all instead of
+    riding it, because the catch-all returns `parsed` without ever checking
+    `upstream.status_code`: any JSON error body from the AI service — and a
+    422 is JSON — reaches the browser as **HTTP 200 with the error inside**.
+    The frontend surfaces failures via `ApiError.status`, so a 200 means the
+    modal closes and the store starts polling a task_id that is `undefined`,
+    forever.
+
+    That was survivable while every field of this request was free-form.
+    It is not now: `mode`, `voice_gender`, `tone` and a Vietnamese-only
+    `language` are all constrained, so rejections are a normal outcome rather
+    than a theoretical one. Taking just this route off the catch-all fixes it
+    with no blast radius on summary / mindmap / drafting / directive-review,
+    which still share the old behaviour.
+
+    Note this route also skips the catch-all's document-status gate — but so
+    did the old path: `_extract_tool_context` only reads `document_id`
+    (singular) and audio-overview sends `document_ids`, so the gate has never
+    applied to this tool. No behaviour is lost here.
+    """
+    body = await request.json()
+
+    url = f"{settings.ai_service_host}/tools/audio-overview"
+    headers: dict = {"Content-Type": "application/json"}
+    llm_api_key = settings.llm_api_key
+    if llm_api_key:
+        headers["Authorization"] = f"Bearer {llm_api_key}"
+
+    try:
+        async with httpx.AsyncClient(timeout=30, follow_redirects=True) as client:
+            upstream = await client.post(url, json=body, headers=headers)
+
+        text = upstream.text
+        parsed = parse_json_safe(text, None)
+
+        if upstream.status_code >= 400:
+            raise HTTPException(
+                status_code=upstream.status_code,
+                detail=_flatten_detail(parsed.get("detail")) if parsed else text,
+            )
+
+        audit_log(
+            request,
+            AuditActions.TOOL_INVOKE,
+            AuditEntityTypes.TOOL,
+            entity_id=parsed.get("task_id") if parsed else None,
+            metadata={
+                "tool_name": "audio-overview",
+                "upstream_status": upstream.status_code,
+                "mode": body.get("mode"),
+                "voice_gender": body.get("voice_gender"),
+                "tone": body.get("tone"),
+            },
+        )
+        return parsed if parsed else {}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        audit_log(
+            request,
+            AuditActions.TOOL_PROXY_ERROR,
+            AuditEntityTypes.TOOL,
+            metadata={"tool_name": "audio-overview", "error": str(exc)},
+        )
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=ErrorMessages.UPSTREAM_ERROR,
+        )
 
 
 @router.post("/tools/{tool_name}")

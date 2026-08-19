@@ -254,8 +254,11 @@ export default function ChatInterface({
             the user because STT is not reliable enough to ask on its own. */}
         <MicButton
           disabled={isDisabled || isStreaming}
+          onRecordStart={() => setInput("")}
           onTranscribed={(text) => {
-            setInput((prev) => (prev ? `${prev} ${text}` : text).trim());
+            // THAY THẾ, không nối thêm. Bản trước nối vào nội dung cũ, nên đọc
+            // lại vì nghe sai lần đầu thì hai bản dính vào nhau.
+            setInput(text.trim());
             requestAnimationFrame(() => {
               inputRef.current?.focus();
               resizeTextarea(inputRef.current);

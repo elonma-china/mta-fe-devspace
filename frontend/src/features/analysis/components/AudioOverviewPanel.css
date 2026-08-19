@@ -129,3 +129,14 @@
     gap: var(--space-xs);
   }
 }
+
+/* Ghi chú khi nguồn bị nén. Dùng token, không hardcode màu (luật project). */
+.ao-panel-note {
+  margin: 0 0 var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  border-left: 3px solid var(--brand-primary);
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  color: var(--txt-neutral-secondary);
+}

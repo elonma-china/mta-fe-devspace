@@ -22,6 +22,7 @@ function mockRecorder(overrides = {}) {
   const api = {
     state: RECORDER_STATE.IDLE,
     elapsedSeconds: 0,
+    analyserRef: { current: null },
     error: null,
     isSupported: true,
     start: jest.fn(),
@@ -131,4 +132,37 @@ test("is disabled while the chat is disabled", () => {
   mockRecorder();
   render(<MicButton onTranscribed={jest.fn()} disabled />);
   expect(screen.getByRole("button")).toBeDisabled();
+});
+
+describe("nhấn mic thì xoá kết quả cũ", () => {
+  test("báo onRecordStart khi bắt đầu ghi", async () => {
+    // Nói lại lần hai mà bản đọc cũ còn trong ô nhập thì hai lần dính vào nhau.
+    const recorder = mockRecorder();
+    const onRecordStart = jest.fn();
+    render(<MicButton onTranscribed={jest.fn()} onRecordStart={onRecordStart} />);
+
+    await userEvent.click(screen.getByRole("button", { name: /ghi âm/i }));
+    expect(onRecordStart).toHaveBeenCalledTimes(1);
+    expect(recorder.start).toHaveBeenCalled();
+  });
+
+  test("không báo khi bấm để DỪNG ghi", async () => {
+    // Bấm lúc đang ghi là dừng, không phải bắt đầu — xoá ở đó là xoá nhầm bản
+    // đọc mà người dùng vừa nói xong.
+    const recorder = mockRecorder({ state: RECORDER_STATE.RECORDING });
+    const onRecordStart = jest.fn();
+    render(<MicButton onTranscribed={jest.fn()} onRecordStart={onRecordStart} />);
+
+    await userEvent.click(screen.getByRole("button", { name: /dừng ghi/i }));
+    expect(recorder.stop).toHaveBeenCalled();
+    expect(onRecordStart).not.toHaveBeenCalled();
+  });
+
+  test("thiếu prop thì vẫn ghi được bình thường", async () => {
+    const recorder = mockRecorder();
+    render(<MicButton onTranscribed={jest.fn()} />);
+
+    await userEvent.click(screen.getByRole("button", { name: /ghi âm/i }));
+    expect(recorder.start).toHaveBeenCalled();
+  });
 });
