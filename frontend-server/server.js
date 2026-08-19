@@ -58,12 +58,21 @@ app.use('/llm', createProxyMiddleware({
 }));
 
 // 3. Tool Proxy (/tools -> backend /tools/...)
-// KHÔNG pathRewrite: `pathRewrite` của http-proxy-middleware 2.0.9 nhận đường
-// dẫn ĐẦY ĐỦ (`/tools/x`), không phải phần đã bị mount cắt — xem chú thích dài
-// trong frontend/src/setupProxy.js. `{'^/': '/tools/'}` làm gateway nhận
-// `/tools/tools/x` -> 404 cho mọi tool.
+// PHẢI có pathRewrite ở ĐÂY, và phải KHÔNG có ở frontend/src/setupProxy.js —
+// hai file chạy trên HAI phiên bản http-proxy-middleware khác nhau, hành vi
+// ngược nhau (đã đọc trong package-lock của chính hai thư mục):
+//   * dev  (`npm start`, CRA/webpack-dev-server) -> hpm 2.0.9: đọc
+//     `req.originalUrl`, tức vẫn thấy `/tools/x`, nên thêm rewrite thành
+//     `/tools/tools/x`.
+//   * prod (file này)                            -> hpm 3.0.5: đọc `req.url`
+//     mà Express ĐÃ cắt mount path, chỉ còn `/x`, nên không rewrite thì gateway
+//     nhận `/audio-overview` -> 404 cho MỌI tool.
+// Đo trên ccoex 2026-08-19: bỏ rewrite ở file này làm podcast/tóm tắt/mindmap/
+// soạn thảo cùng chết 404, trong khi gọi thẳng gateway `/tools/audio-overview`
+// vẫn 401 (route đúng). Đừng "đồng bộ" hai file cho giống nhau.
 app.use('/tools', createProxyMiddleware({
   ...commonProxyOptions,
+  pathRewrite: { '^/': '/tools/' },
   onProxyRes: (proxyRes, req) => {
     // Binary DOCX exports must stream, not buffer — a stale content-length
     // truncates the body. Audio-overview episodes are the same shape but far
