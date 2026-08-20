@@ -3,15 +3,29 @@
 **Base URL**: `http://<host>:5050` · **Auth**: `Authorization: Bearer <token>` (từ `POST /login`)
 Qua Node proxy FE: STT thêm tiền tố `/llm` (proxy cắt), audio-overview giữ nguyên `/tools`.
 
-| # | Method | Path |
+| # | Method | Path | Gateway bản thật `:5050` | Gateway Dev Space `:15050` |
+|---|---|---|---|---|
+| 1 | POST | `/stt/transcribe` | ❌ 404 | ✅ |
+| 2 | POST | `/tools/audio-overview/estimate` | ❌ 404 | ✅ |
+| 3 | POST | `/tools/audio-overview` | ⚠️ chỉ qua catch-all | ✅ |
+| 4 | GET | `/tools/audio-overview/status/{task_id}` | ⚠️ chỉ qua catch-all | ✅ |
+| 5 | GET | `/tools/audio-overview/{task_id}/file` | ❌ 404 | ✅ |
+| 6 | POST | `/tools/audio-overview/{task_id}/cancel` | ❌ 404 | ✅ |
+| 7 | DELETE | `/tools/audio-overview/{task_id}` | ❌ 404 | ✅ |
+
+**Tình trạng triển khai** (đo trên ccoex 2026-08-20):
+
+| Tầng | Bản thật | Dev Space |
 |---|---|---|
-| 1 | POST | `/stt/transcribe` |
-| 2 | POST | `/tools/audio-overview/estimate` |
-| 3 | POST | `/tools/audio-overview` |
-| 4 | GET | `/tools/audio-overview/status/{task_id}` |
-| 5 | GET | `/tools/audio-overview/{task_id}/file` |
-| 6 | POST | `/tools/audio-overview/{task_id}/cancel` |
-| 7 | DELETE | `/tools/audio-overview/{task_id}` |
+| AI `:5001` / `:15001` | ✅ 6/7 route (thiếu `/estimate`), `ENABLE_AUDIO_OVERVIEW=true`, `ENABLE_STT=true` | ✅ 7/7 |
+| serving `:5003` / `:15003` | ✅ 4 giọng | ✅ 4 giọng |
+| worker | ✅ nghe hàng đợi `audio_overview` | ✅ |
+| **gateway** | ❌ **thiếu 5/7 route** | ✅ đủ |
+
+→ Backend đã sẵn sàng; **gateway của bản thật là chỗ còn thiếu**. Muốn FE gọi được từ sản phẩm chính
+thức thì phải ghép các route proxy trong `backend-fastapi/app/routes/voice.py` và `llm.py`.
+Catch-all `/tools/{tool}` **không** kiểm `upstream.status_code`, nên lỗi 4xx của AI về trình duyệt
+thành HTTP 200 — không dùng thay route tường minh được.
 
 ---
 
