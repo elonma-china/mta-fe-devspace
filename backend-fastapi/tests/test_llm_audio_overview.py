@@ -271,3 +271,31 @@ def test_submit_preserves_a_400_from_the_mode_contract(client):
         )
     assert r.status_code == 400
     assert "podcast" in r.json()["detail"]
+
+
+def test_malformed_json_body_is_400_not_500(client):
+    """Body hỏng là lỗi của client — gateway không được biến nó thành 500.
+
+    Đo trên ccoex 2026-08-19: POST /tools/audio-overview với body `{"mode":`
+    qua gateway trả 500 {"error":"Internal server error"}, trong khi CHÍNH
+    request đó gửi thẳng lên AI trả 422. `await request.json()` ném
+    JSONDecodeError và handler toàn cục nuốt thành 500. Hậu quả: giám sát báo
+    động nhầm, và client tưởng máy chủ hỏng nên thử lại mãi một body sẽ không
+    bao giờ hợp lệ.
+    """
+    resp = client.post(
+        "/tools/audio-overview",
+        content=b'{"mode":',
+        headers={"Content-Type": "application/json"},
+    )
+    assert resp.status_code == 400
+    assert "JSON" in resp.json()["detail"]
+
+
+def test_wrong_content_type_is_400_not_500(client):
+    resp = client.post(
+        "/tools/audio-overview",
+        content=b"khong phai json",
+        headers={"Content-Type": "text/plain"},
+    )
+    assert resp.status_code == 400

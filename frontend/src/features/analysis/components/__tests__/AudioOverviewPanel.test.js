@@ -188,3 +188,33 @@ test("401 nói rõ là hết phiên, không phải lỗi tệp", async () => {
   );
   expect(await screen.findByText(/Phiên đăng nhập đã hết hạn/)).toBeInTheDocument();
 });
+
+test("hiện cảnh báo khi tập đã xuống cấp (giọng dự phòng, WAV, lệch thời lượng)", async () => {
+  // Ba kiểu này KHÔNG có mã lỗi: tập vẫn trả về mp3/wav bình thường. Nếu panel
+  // không hiện thì người dùng vừa chờ 30 phút để nhận một bản kém mà không biết.
+  render(
+    <AudioOverviewPanel
+      episode={episode({
+        result: {
+          metadata: {
+            warnings: [
+              { code: "voice_downgraded", message: "Giọng chất lượng cao không dùng được nên cả tập đã đọc bằng giọng dự phòng." },
+              { code: "duration_off_target", message: "Thời lượng thực tế 18.0 phút, lệch 40% so với mục tiêu 30 phút." },
+            ],
+          },
+        },
+      })}
+      onClose={() => {}}
+      onDelete={() => {}}
+    />
+  );
+  expect(await screen.findByText(/giọng dự phòng/)).toBeInTheDocument();
+  expect(screen.getByText(/lệch 40%/)).toBeInTheDocument();
+});
+
+test("không có cảnh báo thì không hiện khối nào", () => {
+  render(
+    <AudioOverviewPanel episode={episode()} onClose={() => {}} onDelete={() => {}} />
+  );
+  expect(screen.queryByText(/⚠/)).toBeNull();
+});

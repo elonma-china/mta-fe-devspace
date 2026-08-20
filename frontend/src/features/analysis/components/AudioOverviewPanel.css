@@ -191,3 +191,28 @@
   font-size: var(--font-size-xs);
   color: var(--txt-neutral-secondary);
 }
+
+/* Cảnh báo tập xuống cấp. Khác với .ao-panel-note (thông tin trung tính): đây
+   là thứ người dùng cần để quyết định có tạo lại tập hay không, nên phải đọc
+   ra ngay chứ không nằm lẫn vào phần mô tả. Dùng token, không hardcode màu. */
+.ao-panel-warnings {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.ao-panel-warning {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: flex-start;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-sm);
+  background: var(--bg-tertiary);
+  color: var(--txt-neutral-secondary);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}

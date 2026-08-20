@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import time
 import urllib.parse
+from typing import Any
 
 import httpx
 from fastapi import (
@@ -452,13 +454,33 @@ async def stream_query(
         )
 
 
+async def _read_json_body(request: Request) -> Any:
+    """Đọc body JSON, trả 400 thay vì 500 khi body hỏng.
+
+    `await request.json()` ném `json.JSONDecodeError` với body không phải JSON
+    (hoặc Content-Type sai), và handler lỗi toàn cục biến nó thành
+    500 {"error":"Internal server error"}. Đo trên ccoex 2026-08-19: gửi
+    `{"mode":` tới /tools/audio-overview qua gateway ra 500, trong khi CHÍNH
+    request đó gửi thẳng lên AI ra 422 — tức tầng dưới xử lý đúng, chỉ gateway
+    tự biến lỗi của client thành lỗi của mình. 500 còn khiến giám sát báo động
+    nhầm và người gọi tưởng máy chủ hỏng nên cứ thử lại mãi.
+    """
+    try:
+        return await request.json()
+    except (json.JSONDecodeError, UnicodeDecodeError, ValueError):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nội dung yêu cầu không phải JSON hợp lệ",
+        )
+
+
 @router.post("/tools/draft/export")
 async def draft_export_proxy(
     request: Request,
     _user: dict = Depends(get_current_user),
 ):
     """Proxy DOCX export to the AI service and stream the binary response."""
-    body = await request.json()
+    body = await _read_json_body(request)
     url = f"{settings.ai_service_host}/tools/draft/export"
     headers: dict = {"Content-Type": "application/json"}
     llm_api_key = settings.llm_api_key
@@ -609,7 +631,7 @@ async def directive_review_export_proxy(
 ):
     """Proxy the advisory-report DOCX export and stream the binary
     response."""
-    body = await request.json()
+    body = await _read_json_body(request)
     url = f"{settings.ai_service_host}/tools/directive-review/export"
     headers: dict = {"Content-Type": "application/json"}
     llm_api_key = settings.llm_api_key
@@ -937,7 +959,7 @@ async def audio_overview_submit_proxy(
     (singular) and audio-overview sends `document_ids`, so the gate has never
     applied to this tool. No behaviour is lost here.
     """
-    body = await request.json()
+    body = await _read_json_body(request)
 
     url = f"{settings.ai_service_host}/tools/audio-overview"
     headers: dict = {"Content-Type": "application/json"}
@@ -996,7 +1018,7 @@ async def tool_proxy(
     doc_repo: DocumentRepository = Depends(get_document_repository),
 ):
     principal = Principal.from_user(_user)
-    body = await request.json()
+    body = await _read_json_body(request)
     ctx = _extract_tool_context(body)
 
     # Validate document status

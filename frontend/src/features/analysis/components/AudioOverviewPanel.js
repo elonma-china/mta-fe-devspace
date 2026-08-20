@@ -108,6 +108,12 @@ export default function AudioOverviewPanel({ episode, onClose, onDelete }) {
   // metadata mà không nơi nào ở giao diện đọc, nên người dùng nhận một bản tóm
   // tắt thiếu tài liệu mà không hề biết.
   const compacted = result?.metadata?.sources?.compacted || [];
+  // Tập XUỐNG CẤP nhưng vẫn thành công: giọng chất lượng cao 503 nên cả tập
+  // đọc bằng giọng dự phòng, máy chủ thiếu ffmpeg nên lưu WAV, hoặc thời lượng
+  // lệch xa yêu cầu. Không có mã lỗi nào cho ba thứ này — người dùng nhận một
+  // tệp mp3 trông bình thường. Backend nay đính chúng vào metadata.warnings và
+  // đây là chỗ duy nhất người dùng nhìn thấy.
+  const warnings = result?.metadata?.warnings || [];
 
   return (
     <section className="ao-panel" aria-label="Tổng quan âm thanh">
@@ -158,6 +164,16 @@ export default function AudioOverviewPanel({ episode, onClose, onDelete }) {
           </button>
         </div>
       </header>
+
+      {warnings.length > 0 && (
+        <ul className="ao-panel-warnings" role="status">
+          {warnings.map((w) => (
+            <li key={w.code || w.message} className="ao-panel-warning">
+              <span aria-hidden="true">⚠</span> {w.message}
+            </li>
+          ))}
+        </ul>
+      )}
 
       {compacted.length > 0 && (
         <p className="ao-panel-note">
