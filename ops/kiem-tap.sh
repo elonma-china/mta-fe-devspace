@@ -94,17 +94,26 @@ python3 -c 'import sys;v=float(sys.argv[1]);print(("  ✅ có tiếng thật (me
 SIL=$("$FF" -hide_banner -i "$D/ep.bin" -af silencedetect=n=-40dB:d=5 -f null - 2>&1 | grep -c silence_start)
 [ "${SIL:-0}" -eq 0 ] && ok "không có khoảng câm nào dài quá 5 giây" || warn "$SIL khoảng câm dài hơn 5 giây — kiểm mối nối các lô"
 
-# ── 4. GIỌNG có đúng không — mẹo phổ tần ─────────────────────────────
-# Giọng VieNeu gốc 48 kHz nên có năng lượng trên 8 kHz. Piper dự phòng gốc
-# 16/22 kHz được nâng mẫu lên 48 kHz nên vùng trên 8 kHz TRỐNG TRƠN. Đây là
-# cách duy nhất nhìn ra "tập đã tụt về giọng dự phòng" từ chính tệp âm thanh,
-# vì mọi giọng đều được resample về cùng 48 kHz trước khi ghép.
-"$FF" -hide_banner -v error -i "$D/ep.bin" -t 30 -af "highpass=f=9000,volumedetect" -f null - 2>&1 | grep mean_volume | awk '{print $5}' > "$D/hi.txt"
-HI=$(cat "$D/hi.txt" 2>/dev/null || echo -99)
-python3 -c 'import sys
-hi=float(sys.argv[1] or -99)
-if hi > -70: print(f"  ✅ phổ trên 9 kHz còn năng lượng ({hi} dB) — đúng giọng chất lượng cao")
-else:        print(f"  ⚠  phổ trên 9 kHz gần như trống ({hi} dB) — nhiều khả năng tập đã đọc bằng giọng dự phòng")' "$HI"
+# ── 4. GIỌNG có đúng không ───────────────────────────────────────────
+# KHÔNG dùng mẹo phổ tần. Bản đầu của script này báo "tập đã tụt về giọng dự
+# phòng" khi năng lượng trên 9 kHz thấp — SAI, đã đo trên ccoex 2026-08-20:
+#   vi_male_hq -54,2 dB · vi_female_hq -46,5 dB · vi_male -57,1 dB · vi_female -48,9 dB
+# Bốn giọng nằm cùng một khoảng, vì bộ resample lên 48 kHz KHÔNG có lọc chống
+# răng cưa nên giọng Piper 16 kHz nâng mẫu cũng sinh năng lượng ở dải đó. Một
+# phép đo kêu oan còn tệ hơn không đo.
+#
+# Đường đáng tin: cảnh báo `voice_downgraded` do chính pipeline ghi (mục 0), và
+# dòng log của lượt hạ giọng. Cả hai đều nói CHẮC CHẮN, không suy đoán.
+HI=$("$FF" -hide_banner -ss 30 -t 30 -i "$D/ep.bin" -af "highpass=f=9000,volumedetect" -f null - 2>&1 | grep mean_volume | awk '{print $5}')
+ALL=$("$FF" -hide_banner -ss 30 -t 30 -i "$D/ep.bin" -af volumedetect -f null - 2>&1 | grep mean_volume | awk '{print $5}')
+echo "  ·  phổ tham khảo: toàn dải ${ALL:-?} dB · trên 9 kHz ${HI:-?} dB (chỉ để so giữa các tập, KHÔNG suy ra giọng)"
+
+LOGF="${AO_LOG:-$HOME/devspace/logs/ai-voice-worker.log}"
+if [ -f "$LOGF" ] && grep -q "chuyển sang giọng Piper" "$LOGF"; then
+  warn "log máy chủ có ghi lượt hạ giọng — đối chiếu mốc thời gian với tập này"
+else
+  ok "log máy chủ không ghi lượt hạ giọng nào"
+fi
 
 # ── 5. nghe lại 3 lát, so với transcript ─────────────────────────────
 if [ "$FULL" = 1 ]; then
