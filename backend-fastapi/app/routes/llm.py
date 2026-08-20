@@ -932,6 +932,39 @@ def _flatten_detail(detail) -> str:
     return detail if isinstance(detail, str) else str(detail)
 
 
+@router.post("/tools/audio-overview/estimate")
+async def audio_overview_estimate_proxy(
+    request: Request,
+    _user: dict = Depends(get_current_user),
+):
+    """Chuyển tiếp ước tính thời lượng khả thi (không tạo tập, không gọi LLM).
+
+    Khai TRƯỚC route submit và trước catch-all: cùng lý do đã ghi ở
+    `/tools/audio-overview` — catch-all không kiểm `upstream.status_code` nên
+    lỗi 4xx của AI về trình duyệt thành HTTP 200.
+    """
+    body = await _read_json_body(request)
+    url = f"{settings.ai_service_host}/tools/audio-overview/estimate"
+    headers: dict = {"Content-Type": "application/json"}
+    if settings.llm_api_key:
+        headers["Authorization"] = f"Bearer {settings.llm_api_key}"
+    try:
+        async with httpx.AsyncClient(timeout=60) as client:
+            upstream = await client.post(url, json=body, headers=headers)
+    except httpx.HTTPError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Không gọi được dịch vụ AI ({exc.__class__.__name__})",
+        ) from exc
+    parsed = parse_json_safe(upstream.text, None)
+    if upstream.status_code >= 400:
+        raise HTTPException(
+            status_code=upstream.status_code,
+            detail=_flatten_detail(parsed.get("detail")) if parsed else upstream.text,
+        )
+    return parsed or {}
+
+
 @router.post("/tools/audio-overview")
 async def audio_overview_submit_proxy(
     request: Request,

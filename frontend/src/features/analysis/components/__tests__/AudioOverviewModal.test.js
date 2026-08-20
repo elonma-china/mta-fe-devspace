@@ -1,8 +1,13 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import AudioOverviewModal, {
   MAX_AUDIO_DOCS,
 } from "../AudioOverviewModal";
+import { estimateAudioOverview } from "../../api/audioOverview";
+
+jest.mock("../../api/audioOverview", () => ({
+  estimateAudioOverview: jest.fn(() => new Promise(() => {})),
+}));
 
 const setup = (props = {}) => {
   const onSubmit = jest.fn();
@@ -146,4 +151,52 @@ test("renders nothing when closed", () => {
     <AudioOverviewModal open={false} onClose={() => {}} onSubmit={() => {}} />
   );
   expect(container).toBeEmptyDOMElement();
+});
+
+describe("gợi ý thời lượng khả thi từ nguồn", () => {
+  // Xin 30 phút từ một trang giấy là bất khả thi. Trước đây hệ thống vẫn nhận,
+  // và người dùng chờ hơn 13 phút để nhận một tập 10,7 phút (đo trên máy chủ
+  // 2026-08-20). Con số phải hiện TRƯỚC khi bấm tạo.
+  beforeEach(() => estimateAudioOverview.mockReset());
+
+  test("hiện số phút nguồn nuôi nổi khi mở modal", async () => {
+    estimateAudioOverview.mockResolvedValue({
+      source_words: 600,
+      feasible_minutes: 5,
+      max_minutes: 30,
+      documents: [],
+    });
+    setup({ documentIds: ["d1"] });
+    expect(await screen.findByText(/600 từ.*khoảng 5 phút/)).toBeInTheDocument();
+  });
+
+  test("kéo quá mức thì báo trước là tập sẽ ngắn hơn", async () => {
+    estimateAudioOverview.mockResolvedValue({
+      source_words: 600,
+      feasible_minutes: 5,
+      max_minutes: 30,
+      documents: [],
+    });
+    setup({ documentIds: ["d1"] });
+    await screen.findByText(/khoảng 5 phút/);
+    fireEvent.change(screen.getByLabelText(/Độ dài mong muốn/), {
+      target: { value: "20" },
+    });
+    expect(
+      await screen.findByText(/chỉ đủ cho khoảng 5 phút/)
+    ).toBeInTheDocument();
+  });
+
+  test("ước tính hỏng thì im lặng, KHÔNG chặn người dùng tạo tập", async () => {
+    estimateAudioOverview.mockRejectedValue(new Error("mạng lỗi"));
+    setup({ documentIds: ["d1"] });
+    await waitFor(() => expect(estimateAudioOverview).toHaveBeenCalled());
+    expect(screen.queryByText(/đủ cho khoảng/)).toBeNull();
+    expect(screen.getByRole("button", { name: /Tạo podcast/ })).not.toBeDisabled();
+  });
+
+  test("không chọn tài liệu thì không hỏi ước tính", () => {
+    setup({ documentIds: [] });
+    expect(estimateAudioOverview).not.toHaveBeenCalled();
+  });
 });

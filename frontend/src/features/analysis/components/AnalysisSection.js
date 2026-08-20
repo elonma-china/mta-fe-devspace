@@ -481,6 +481,9 @@ export default function AnalysisSection({ onCreated, onRemoved }) {
     }
     showModal(AudioOverviewModal, {
       documentCount: selectedDocumentIds.length,
+      // Modal cần chính DANH SÁCH id (không chỉ số lượng) để hỏi thời lượng
+      // khả thi từ nguồn trước khi người dùng bấm tạo.
+      documentIds: selectedDocumentIds,
       onSubmit: async ({
         mode,
         voiceGender,

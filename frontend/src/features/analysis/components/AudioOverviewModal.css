@@ -171,3 +171,18 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Gợi ý thời lượng khả thi từ nguồn. Trạng thái thường là chữ mờ (thông tin);
+   khi người dùng kéo quá mức nguồn nuôi nổi thì đậm lên — vì lúc đó nó nói
+   trước một điều sắp xảy ra: tập sẽ ngắn hơn số họ chọn. */
+.ao-estimate {
+  display: block;
+  margin-top: var(--space-xs);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+  color: var(--txt-neutral-tertiary);
+}
+
+.ao-estimate.is-over {
+  color: var(--brand-primary);
+}

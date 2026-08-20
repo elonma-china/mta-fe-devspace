@@ -90,3 +90,20 @@ export const fetchAudioOverviewBlob = (taskId, { signal } = {}) =>
     prefix: API_PREFIX.TOOL,
     signal,
   });
+
+/**
+ * Ước tính thời lượng khả thi từ nguồn — gọi TRƯỚC khi tạo tập.
+ *
+ * Không tạo gì, không gọi LLM: chỉ đếm chữ của tài liệu đã chọn. Có nó thì
+ * người dùng biết ngay "nguồn này đủ cho khoảng 5 phút" thay vì xin 30 phút,
+ * chờ hơn 13 phút, rồi nhận một tập 10,7 phút (đo thật trên máy chủ).
+ *
+ * @param {{document_ids?: string[], text?: string, mode?: string}} payload
+ * @returns {Promise<{source_words: number, feasible_minutes: number,
+ *   max_minutes: number, documents: Array<{id: string, name: string, words: number}>}>}
+ */
+export const estimateAudioOverview = (payload, { signal } = {}) =>
+  apiClient.post("/audio-overview/estimate", payload, {
+    prefix: API_PREFIX.TOOL,
+    signal,
+  });

@@ -1,6 +1,7 @@
 // src/features/analysis/components/AudioOverviewModal.js
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import "./AudioOverviewModal.css";
+import { estimateAudioOverview } from "../api/audioOverview";
 import "components/common/modals/share.css";
 
 /**
@@ -70,6 +71,7 @@ export default function AudioOverviewModal({
   open,
   onClose,
   documentCount = 0,
+  documentIds = [],
   onSubmit,
 }) {
   const backdropRef = useRef(null);
@@ -81,6 +83,10 @@ export default function AudioOverviewModal({
   // 3 minutes, not the service's 10: a Dev Space run should come back while
   // the person who started it is still watching.
   const [targetMinutes, setMinutes] = useState(3);
+  // Nguồn đã chọn nuôi nổi bao nhiêu phút. `null` = chưa biết (đang hỏi hoặc
+  // hỏi hỏng) — khi chưa biết thì KHÔNG chặn gì cả, chỉ im lặng: một ước tính
+  // không lấy được không phải lý do để cấm người dùng tạo tập.
+  const [estimate, setEstimate] = useState(null);
 
   const handleEsc = useCallback(
     (e) => {
@@ -98,6 +104,32 @@ export default function AudioOverviewModal({
   useEffect(() => {
     if (open && dialogRef.current) dialogRef.current.focus();
   }, [open]);
+
+  // Hỏi ngay khi mở, và hỏi lại khi đổi kiểu nội dung: podcast nở nhiều hơn
+  // bản đọc nên cùng một nguồn cho ra hai con số khác nhau.
+  useEffect(() => {
+    if (!open || !documentIds.length) {
+      setEstimate(null);
+      return undefined;
+    }
+    const controller = new AbortController();
+    let cancelled = false;
+    estimateAudioOverview(
+      { document_ids: documentIds, mode: "narration" },
+      { signal: controller.signal }
+    )
+      .then((r) => {
+        if (!cancelled) setEstimate(r);
+      })
+      .catch(() => {
+        // Im lặng có chủ đích: đây là gợi ý, không phải cổng chặn.
+        if (!cancelled) setEstimate(null);
+      });
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [open, documentIds]);
 
   if (!open) return null;
 
@@ -194,6 +226,19 @@ export default function AudioOverviewModal({
             <span className="ao-field-label">
               Độ dài mong muốn: <strong>{targetMinutes} phút</strong>
             </span>
+            {estimate && (
+              <span
+                className={`ao-estimate${
+                  targetMinutes > estimate.feasible_minutes ? " is-over" : ""
+                }`}
+              >
+                {targetMinutes > estimate.feasible_minutes
+                  ? `Nguồn đã chọn (${estimate.source_words} từ) chỉ đủ cho khoảng ` +
+                    `${estimate.feasible_minutes} phút — tập sẽ được tạo ${estimate.feasible_minutes} phút. ` +
+                    "Thêm tài liệu nếu muốn dài hơn."
+                  : `Nguồn đã chọn (${estimate.source_words} từ) đủ cho khoảng ${estimate.feasible_minutes} phút.`}
+              </span>
+            )}
             <input
               type="range"
               className="ao-range"
