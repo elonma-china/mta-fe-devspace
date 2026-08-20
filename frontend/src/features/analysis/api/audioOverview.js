@@ -19,7 +19,7 @@ import { API_PREFIX } from "config";
  * @param {string} [payload.focus] - podcast ONLY, max 500 chars. Sending it on
  *   a narration is a 400, not a silent no-op.
  * @param {string} [payload.instruction] - narration ONLY, max 2000 chars.
- * @param {number} [payload.target_minutes] - 1..30.
+ * @param {"short"|"default"|"long"} [payload.length] - Độ dài tương đối.
  * @param {object} [options]
  * @param {AbortSignal} [options.signal]
  * @returns {Promise<{task_id: string, status: string, timestamp: string}>}

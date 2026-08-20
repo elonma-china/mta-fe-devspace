@@ -33,9 +33,20 @@ export const AUDIO_TONES = [
   { id: "cham_rai", label: "Chậm rãi" },
 ];
 
-/** Matches the AI service's target_minutes bounds (1..30). */
-export const MIN_MINUTES = 1;
-export const MAX_MINUTES = 30;
+/**
+ * Ba mức độ dài, kiểu NotebookLM — KHÔNG phải số phút.
+ *
+ * Trước đây là một thanh trượt 1..30 phút. Hỏi người dùng số phút là hỏi sai
+ * câu: không ai biết một tập 30 phút cần bao nhiêu tài liệu. Đo trên máy chủ
+ * 2026-08-20: xin 30 phút từ 532 từ nguồn -> chờ 13,6 phút -> nhận tập nở 4,3
+ * lần so với nguồn, tức phần dôi ra là chữ độn. Nay server suy số phút từ
+ * chính nguồn, nên mọi lựa chọn ở đây đều khả thi.
+ */
+export const AUDIO_LENGTHS = [
+  { id: "short", label: "Ngắn" },
+  { id: "default", label: "Mặc định" },
+  { id: "long", label: "Dài" },
+];
 
 /** The service's `focus` field is capped at 500 characters. */
 export const MAX_FOCUS_CHARS = 500;
@@ -64,7 +75,7 @@ export const MAX_AUDIO_DOCS = 5;
  * @param {() => void} props.onClose
  * @param {number} [props.documentCount] - How many documents are selected.
  * @param {(opts: {mode: string, voiceGender: string, tone: string,
- *   focus: string, instruction: string, targetMinutes: number}) => void}
+ *   focus: string, instruction: string, length: "short"|"default"|"long"}) => void}
  *   props.onSubmit - `mode` is always "narration"; `focus` always "".
  */
 export default function AudioOverviewModal({
@@ -80,9 +91,7 @@ export default function AudioOverviewModal({
   const [voiceGender, setVoiceGender] = useState("male");
   const [tone, setTone] = useState("tu_nhien");
   const [instruction, setInstruction] = useState("");
-  // 3 minutes, not the service's 10: a Dev Space run should come back while
-  // the person who started it is still watching.
-  const [targetMinutes, setMinutes] = useState(3);
+  const [length, setLength] = useState("default");
   // Nguồn đã chọn nuôi nổi bao nhiêu phút. `null` = chưa biết (đang hỏi hoặc
   // hỏi hỏng) — khi chưa biết thì KHÔNG chặn gì cả, chỉ im lặng: một ước tính
   // không lấy được không phải lý do để cấm người dùng tạo tập.
@@ -152,7 +161,7 @@ export default function AudioOverviewModal({
       tone,
       focus: "",
       instruction: instruction.trim(),
-      targetMinutes: Number(targetMinutes),
+      length,
     });
     onClose?.();
   };
@@ -223,31 +232,25 @@ export default function AudioOverviewModal({
           </label>
 
           <label className="ao-field">
-            <span className="ao-field-label">
-              Độ dài mong muốn: <strong>{targetMinutes} phút</strong>
-            </span>
+            <span className="ao-field-label">Độ dài</span>
+            {renderChoices(
+              AUDIO_LENGTHS.map((l) => ({
+                ...l,
+                // Số phút đi kèm nhãn khi biết được: người dùng thấy trước
+                // mình sắp nhận cái gì, thay vì đoán "Dài" là bao lâu.
+                label: estimate?.lengths?.[l.id]
+                  ? `${l.label} · ~${estimate.lengths[l.id]} phút`
+                  : l.label,
+              })),
+              length,
+              setLength,
+              "Độ dài"
+            )}
             {estimate && (
-              <span
-                className={`ao-estimate${
-                  targetMinutes > estimate.feasible_minutes ? " is-over" : ""
-                }`}
-              >
-                {targetMinutes > estimate.feasible_minutes
-                  ? `Nguồn đã chọn (${estimate.source_words} từ) chỉ đủ cho khoảng ` +
-                    `${estimate.feasible_minutes} phút — tập sẽ được tạo ${estimate.feasible_minutes} phút. ` +
-                    "Thêm tài liệu nếu muốn dài hơn."
-                  : `Nguồn đã chọn (${estimate.source_words} từ) đủ cho khoảng ${estimate.feasible_minutes} phút.`}
+              <span className="ao-estimate">
+                Ước tính theo nguồn đã chọn ({estimate.source_words} từ).
               </span>
             )}
-            <input
-              type="range"
-              className="ao-range"
-              min={MIN_MINUTES}
-              max={MAX_MINUTES}
-              value={targetMinutes}
-              aria-label="Độ dài mong muốn (phút)"
-              onChange={(e) => setMinutes(e.target.value)}
-            />
           </label>
 
           <label className="ao-field">

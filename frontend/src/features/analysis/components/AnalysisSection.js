@@ -490,7 +490,7 @@ export default function AnalysisSection({ onCreated, onRemoved }) {
         tone,
         focus,
         instruction,
-        targetMinutes,
+        length,
       }) => {
         // One in-flight episode PER MODE, not per notebook: checked here
         // rather than before the modal so the user picks a mode first and
@@ -517,7 +517,7 @@ export default function AnalysisSection({ onCreated, onRemoved }) {
             tone,
             focus,
             instruction,
-            targetMinutes,
+            length,
             name: `${prefix} — ${firstDoc?.name || "Tài liệu"}`,
           });
         } catch (e) {

@@ -153,46 +153,65 @@ test("renders nothing when closed", () => {
   expect(container).toBeEmptyDOMElement();
 });
 
-describe("gợi ý thời lượng khả thi từ nguồn", () => {
-  // Xin 30 phút từ một trang giấy là bất khả thi. Trước đây hệ thống vẫn nhận,
-  // và người dùng chờ hơn 13 phút để nhận một tập 10,7 phút (đo trên máy chủ
-  // 2026-08-20). Con số phải hiện TRƯỚC khi bấm tạo.
+describe("ba mức độ dài kiểu NotebookLM", () => {
+  // Thanh trượt phút đã bị bỏ: hỏi người dùng "bao nhiêu phút" là hỏi sai câu,
+  // họ không biết một tập 30 phút cần bao nhiêu tài liệu. Đo trên máy chủ
+  // 2026-08-20: xin 30 phút từ 532 từ -> tập nở 4,3 lần so với nguồn.
   beforeEach(() => estimateAudioOverview.mockReset());
 
-  test("hiện số phút nguồn nuôi nổi khi mở modal", async () => {
+  test("không còn thanh trượt phút nào", () => {
+    setup();
+    expect(screen.queryByLabelText(/Độ dài mong muốn/)).toBeNull();
+    expect(document.querySelector(".ao-range")).toBeNull();
+  });
+
+  test("có đúng ba mức, mặc định là Mặc định", () => {
+    setup();
+    const group = screen.getByRole("group", { name: "Độ dài" });
+    const names = Array.from(group.querySelectorAll("button")).map((b) => b.textContent);
+    expect(names).toEqual(["Ngắn", "Mặc định", "Dài"]);
+    expect(group.querySelector(".is-active").textContent).toBe("Mặc định");
+  });
+
+  test("gửi `length` chứ không gửi số phút", () => {
+    const { onSubmit } = setup();
+    fireEvent.click(screen.getByRole("button", { name: "Dài" }));
+    submit();
+    const payload = onSubmit.mock.calls[0][0];
+    expect(payload.length).toBe("long");
+    expect(payload.targetMinutes).toBeUndefined();
+  });
+
+  test("kèm số phút ước tính vào nhãn khi biết được nguồn", async () => {
     estimateAudioOverview.mockResolvedValue({
-      source_words: 600,
-      feasible_minutes: 5,
+      source_words: 1200,
+      feasible_minutes: 10,
+      lengths: { short: 5, default: 8, long: 10 },
       max_minutes: 30,
       documents: [],
     });
     setup({ documentIds: ["d1"] });
-    expect(await screen.findByText(/600 từ.*khoảng 5 phút/)).toBeInTheDocument();
+    // Khẳng định theo NỘI DUNG nhóm, không theo accessible name: nhãn có dấu
+    // chấm giữa (·) và dấu ngã tiếng Việt, so khớp tên nút dễ trượt vì chuẩn
+    // hoá khoảng trắng của thư viện.
+    await waitFor(() =>
+      expect(document.querySelectorAll(".ao-choices")[2].textContent).toMatch(/~5 phút/)
+    );
+    const group = document.querySelectorAll(".ao-choices")[2];
+    expect(group.textContent).toMatch(/Ngắn · ~5 phút/);
+    expect(group.textContent).toMatch(/Dài · ~10 phút/);
+    expect(screen.getByText(/1200 từ/)).toBeInTheDocument();
   });
 
-  test("kéo quá mức thì báo trước là tập sẽ ngắn hơn", async () => {
-    estimateAudioOverview.mockResolvedValue({
-      source_words: 600,
-      feasible_minutes: 5,
-      max_minutes: 30,
-      documents: [],
-    });
-    setup({ documentIds: ["d1"] });
-    await screen.findByText(/khoảng 5 phút/);
-    fireEvent.change(screen.getByLabelText(/Độ dài mong muốn/), {
-      target: { value: "20" },
-    });
-    expect(
-      await screen.findByText(/chỉ đủ cho khoảng 5 phút/)
-    ).toBeInTheDocument();
-  });
-
-  test("ước tính hỏng thì im lặng, KHÔNG chặn người dùng tạo tập", async () => {
+  test("ước tính hỏng thì vẫn chọn được mức và tạo được tập", async () => {
     estimateAudioOverview.mockRejectedValue(new Error("mạng lỗi"));
-    setup({ documentIds: ["d1"] });
+    const { onSubmit } = setup({ documentIds: ["d1"] });
     await waitFor(() => expect(estimateAudioOverview).toHaveBeenCalled());
-    expect(screen.queryByText(/đủ cho khoảng/)).toBeNull();
-    expect(screen.getByRole("button", { name: /Tạo podcast/ })).not.toBeDisabled();
+    // Vẫn đủ ba mức, chỉ là không kèm số phút.
+    const group = document.querySelectorAll(".ao-choices")[2];
+    expect(group.textContent).toBe("NgắnMặc địnhDài");
+    submit();
+    expect(onSubmit).toHaveBeenCalled();
   });
 
   test("không chọn tài liệu thì không hỏi ước tính", () => {

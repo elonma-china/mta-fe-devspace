@@ -106,7 +106,7 @@ describe("submit", () => {
       documentIds: ["d1", "d2"],
       voiceGender: "male",
       tone: "soi_noi",
-      targetMinutes: 3,
+      length: "default",
       name: "Podcast",
     });
 
@@ -115,7 +115,7 @@ describe("submit", () => {
       mode: "podcast",
       voice_gender: "male",
       tone: "soi_noi",
-      target_minutes: 3,
+      length: "default",
       document_ids: ["d1", "d2"],
       conversation_id: "7",
     });
@@ -133,7 +133,7 @@ describe("submit", () => {
       documentIds: ["d1"],
       voiceGender: "male",
       tone: "tu_nhien",
-      targetMinutes: 2,
+      length: "default",
       name: "Bản đọc",
     });
 
@@ -151,7 +151,7 @@ describe("submit", () => {
       tone: "tu_nhien",
       focus: "kết luận",
       instruction: "không nên gửi",
-      targetMinutes: 5,
+      length: "default",
       name: "Podcast",
     });
     const payload = submitAudioOverview.mock.calls[0][0];
@@ -169,7 +169,7 @@ describe("submit", () => {
       tone: "trang_trong",
       focus: "không nên gửi",
       instruction: "chỉ nói phần kiến nghị",
-      targetMinutes: 5,
+      length: "default",
       name: "Bản đọc",
     });
     const payload = submitAudioOverview.mock.calls[0][0];
@@ -186,7 +186,7 @@ describe("submit", () => {
       documentIds: ["d1"],
       voiceGender: "male",
       tone: "tu_nhien",
-      targetMinutes: 5,
+      length: "default",
       name: "Podcast",
     });
 
@@ -207,7 +207,7 @@ describe("submit", () => {
       documentIds: ["d1"],
       voiceGender: "male",
       tone: "tu_nhien",
-      targetMinutes: 3,
+      length: "default",
       name: "x",
     };
     await useAudioOverviewStore.getState().submit({ ...base, mode: AUDIO_MODE.PODCAST });

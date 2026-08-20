@@ -22,6 +22,9 @@
    | **Bản đọc theo yêu cầu** | 1 người đọc bản tóm tắt viết theo ô "Yêu cầu" | 1 giọng |
 
    - **Giọng**: nam / nữ. **Tông giọng**: Trang trọng · Tự nhiên · Sôi nổi · Chậm rãi.
+   - **Độ dài**: Ngắn · Mặc định · Dài (kiểu NotebookLM) — **không nhập số phút**.
+     Máy chủ suy số phút từ chính nguồn đã chọn, nên mọi lựa chọn đều khả thi;
+     modal hiện luôn ước tính "Ngắn · ~5 phút" ngay khi chọn xong tài liệu.
    - **Chỉ tiếng Việt** — không còn lựa chọn ngôn ngữ; nhánh tiếng Anh đã gỡ khỏi cả 3 tầng.
    - Mỗi sổ ghi chú giữ **1 tập mỗi kiểu** → podcast và bản đọc cùng tồn tại được.
    - Bảng nghe tập có nút **← Quay lại** (nó thay chỗ cả lưới công cụ nên đây là lối ra),

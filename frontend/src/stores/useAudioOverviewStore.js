@@ -212,7 +212,8 @@ const useAudioOverviewStore = create((set, get) => ({
    * @param {string} params.tone - Named preset id.
    * @param {string} [params.focus] - podcast only, max 500 chars.
    * @param {string} [params.instruction] - narration only, max 2000 chars.
-   * @param {number} params.targetMinutes
+   * @param {"short"|"default"|"long"} params.length - Độ dài tương đối;
+   *   server suy số phút từ chính nguồn (xem AudioOverviewModal).
    * @param {string} params.name - Display name for the list row.
    * @returns {Promise<string>} The task id.
    */
@@ -225,7 +226,7 @@ const useAudioOverviewStore = create((set, get) => ({
     tone,
     focus,
     instruction,
-    targetMinutes,
+    length,
     name,
   }) => {
     const payload = {
@@ -233,7 +234,9 @@ const useAudioOverviewStore = create((set, get) => ({
       mode,
       voice_gender: voiceGender,
       tone,
-      target_minutes: targetMinutes,
+      // Gửi MỨC, không gửi phút: server biết nguồn dài bao nhiêu, người dùng
+      // thì không. Xem chú thích AUDIO_LENGTHS trong AudioOverviewModal.
+      length,
       // Phiên chat sở hữu tập này. Thiếu trường này thì tập rơi vào thư mục
       // "no-session" trên MinIO và trace không gom được theo hội thoại — đo
       // được đúng như vậy: `object_key` của mọi tập đều là
