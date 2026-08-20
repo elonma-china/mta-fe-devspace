@@ -118,8 +118,8 @@ nạp thêm một jina-v3 sẽ **OOM chính LLM trả lời của bản thật**
 
 ## Bàn giao voice cho đội FE
 
-> 📄 **Tài liệu tích hợp cho đội FE: [`VOICE_API.md`](VOICE_API.md)** — 6 bước cho
-> nút mic + 6 bước cho Tổng quan âm thanh, 5 cái bẫy, bảng tra file tham chiếu.
+> 📄 **Tài liệu API cho đội FE: [`VOICE_API.md`](VOICE_API.md)** — 7 endpoint, bảng tham số,
+> ví dụ curl + fetch, bảng mã lỗi, và 4 quy tắc dễ sai của hợp đồng.
 
 Skin nằm sau cổng `REACT_APP_BRAND` nên tách sạch được phần voice:
 

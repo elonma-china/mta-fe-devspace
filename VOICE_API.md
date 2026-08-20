@@ -1,84 +1,33 @@
-# Tích hợp API giọng nói vào FE
+# API giọng nói — tài liệu cho FE gọi
 
-Hướng dẫn cho đội FE ghép **nút mic (STT)** và **Tổng quan âm thanh (TTS)** vào phần mềm.
-Mỗi bước có kèm file tham chiếu trong `mta-fe-devspace` — bản đã chạy thật, cứ mở ra đối chiếu.
+Hai nhóm: **STT** (thu âm → chữ) và **Tổng quan âm thanh** (tài liệu → tập audio).
 
----
+- **Base URL**: gateway `http://<host>:5050`. Qua Node proxy của FE thì thêm tiền tố:
+  `/llm` cho STT, `/tools` cho tổng quan âm thanh (proxy cắt `/llm`, **giữ** `/tools`).
+- **Auth**: mọi endpoint cần `Authorization: Bearer <token>` (lấy từ `POST /login`).
 
-## 0. Đường đi của một request
-
-```
-Trình duyệt ──► frontend-server (Node proxy) ──► gateway FastAPI ──► AI :5001 ──► serving :5003
-                     /db  /llm  /tools                                (voice)     (TTS + STT)
-```
-
-FE **không bao giờ** gọi thẳng `:5001` / `:5003`. Mọi thứ đi qua proxy → gateway.
-
-### ⚠ Bẫy số 1 — tiền tố proxy không đồng nhất
-
-| Tiền tố | Proxy làm gì | Trình duyệt gọi | Gateway nhận |
-|---|---|---|---|
-| `/db` | **cắt** tiền tố | `/db/login` | `/login` |
-| `/llm` | **cắt** tiền tố | `/llm/stt/transcribe` | `/stt/transcribe` |
-| `/tools` | **GIỮ** nguyên | `/tools/audio-overview` | `/tools/audio-overview` |
-
-Và quy tắc `/tools` **khác nhau giữa dev và production** vì hai môi trường dùng hai bản
-`http-proxy-middleware`:
-
-| Môi trường | Bản | Cấu hình đúng |
+| # | Endpoint | Việc |
 |---|---|---|
-| `npm start` (CRA dev-server) | 2.0.9 — đọc `req.originalUrl` | **KHÔNG** `pathRewrite` |
-| `frontend-server` (production) | 3.0.5 — đọc `req.url` đã bị Express cắt | **PHẢI** `pathRewrite: { '^/': '/tools/' }` |
-
-> Đồng bộ hai file cho "giống nhau" là làm hỏng một trong hai. Triệu chứng: **mọi** tool trả 404
-> qua proxy trong khi gọi thẳng gateway vẫn 401 → đó là mất tiền tố, không phải sai route.
->
-> 📁 `frontend-server/server.js` · `frontend/src/setupProxy.js`
-
----
-
-## 1. Lấy token
-
-```js
-POST /db/login   { username, password }   →   { token | access_token, user }
-```
-
-Mọi request bên dưới cần header `Authorization: Bearer <token>`.
+| 1 | `POST /stt/transcribe` | thu âm → chữ |
+| 2 | `POST /tools/audio-overview/estimate` | nguồn này đủ cho bao nhiêu phút |
+| 3 | `POST /tools/audio-overview` | đặt lệnh tạo tập → `task_id` |
+| 4 | `GET /tools/audio-overview/status/{task_id}` | theo dõi tiến độ / lấy kết quả |
+| 5 | `GET /tools/audio-overview/{task_id}/file` | tải file audio |
+| 6 | `POST /tools/audio-overview/{task_id}/cancel` | huỷ giữa chừng |
+| 7 | `DELETE /tools/audio-overview/{task_id}` | xoá tập |
 
 ---
 
-# Phần A — Nút mic (STT)
+## 1. `POST /stt/transcribe` — thu âm thành chữ
 
-## Bước A1. Ghi âm thành WAV **trong trình duyệt**
+**Body**: `multipart/form-data`
 
-Dùng `AudioWorklet`/`ScriptProcessor` + tự đóng gói WAV. **Không dùng `MediaRecorder`.**
+| Tham số | Kiểu | Bắt buộc | Ghi chú |
+|---|---|---|---|
+| `file` | file | ✔ | WAV 16 kHz mono 16-bit. **Tên file phải có đuôi hợp lệ** — chặn theo đuôi: `.wav .webm .ogg .opus .m4a .mp3 .flac .aac`. Trần **25 MB** |
+| `language` | string | | `vi` (mặc định) |
 
-- Chrome cho ra `webm/opus`; dịch vụ STT phải đẩy mọi thứ không phải WAV qua `ffmpeg`,
-  máy chủ thiếu `ffmpeg` sẽ trả **503**.
-- Định dạng cần: **WAV 16 kHz, mono, 16-bit**.
-
-> 📁 `frontend/src/utils/wavEncoder.js` · `frontend/src/hooks/useVoiceRecorder.js`
-
-**Micro cần secure context**: `getUserMedia` chỉ chạy trên **HTTPS hoặc `localhost`**.
-Mở bằng `http://<ip>` là không có mic — hãy làm nút mờ đi kèm lý do, đừng để nút chết câm.
-
-## Bước A2. Gửi lên
-
-```js
-const form = new FormData();
-form.append("file", blob, "voice.wav");   // TÊN FILE QUAN TRỌNG
-form.append("language", "vi");
-POST /llm/stt/transcribe                  // multipart, KHÔNG tự đặt Content-Type
-```
-
-> ⚠ **Bẫy số 2** — dịch vụ chặn theo **đuôi tên file**. Blob vô danh bị từ chối **415** trước khi
-> giải mã. Luôn đặt tên `voice.wav`.
-
-Trần dung lượng **25 MB** (26.214.400 byte) — vượt là **413**.
-
-> 📁 `frontend/src/features/chat/api/stt.js`
-
-## Bước A3. Đọc kết quả
+**Trả về `200`**
 
 ```json
 {
@@ -90,181 +39,213 @@ Trần dung lượng **25 MB** (26.214.400 byte) — vượt là **413**.
 }
 ```
 
-Hiển thị **`text`** (đã chuẩn hoá hoa/thường, dấu câu). `raw_text` viết HOA toàn phần, chỉ để đối chiếu.
+Dùng `text` (đã chuẩn hoá hoa/thường + dấu câu); `raw_text` là bản thô viết HOA.
 
-**Đưa chữ vào ô nhập, đừng tự gửi đi** — STT không đủ chính xác để thay người dùng bấm gửi.
+**Ví dụ**
 
-## Bảng mã lỗi STT — mỗi mã một hành động khác nhau
+```bash
+curl -X POST http://host:5050/stt/transcribe \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@voice.wav;type=audio/wav" -F "language=vi"
+```
 
-| Mã | Nghĩa | Nói gì với người dùng |
-|---|---|---|
-| 401 | thiếu/hết token | đăng nhập lại |
-| 403 | máy chủ tắt tính năng | không phải lỗi người dùng |
-| 413 | đoạn ghi quá dài | ghi ngắn lại |
-| 415 | định dạng không hỗ trợ | thường là quên đặt tên file |
-| 422 | rỗng / quá ngắn (<250 ms) / không nghe ra chữ | **giữ nguyên `detail` của server** — nó nói rõ nhấn giữ lâu hơn hay nói to hơn |
-| 503 | engine chưa nạp | thử lại sau |
+```js
+const form = new FormData();
+form.append("file", blob, "voice.wav");   // đặt tên, đừng gửi blob vô danh
+form.append("language", "vi");
+await fetch("/llm/stt/transcribe", {
+  method: "POST",
+  headers: { Authorization: `Bearer ${token}` },  // KHÔNG tự set Content-Type
+  body: form,
+});
+```
 
-> ⚠ **Bẫy số 3** — đừng gộp hết thành "Lỗi kết nối". 422 gộp nhiều nguyên nhân rất khác nhau, và
-> server đã trả câu tiếng Việt hành động được; ưu tiên hiện `detail` khi nó là câu hoàn chỉnh.
->
-> 📁 `sttErrorMessage()` trong `frontend/src/features/chat/api/stt.js`
+**Mã lỗi**
+
+| Mã | Nghĩa |
+|---|---|
+| `403` | máy chủ tắt STT |
+| `413` | file vượt 25 MB |
+| `415` | đuôi tên file không hỗ trợ |
+| `422` | file rỗng / đoạn ghi < 250 ms / không nghe ra chữ nào |
+| `503` | engine chưa nạp |
+
+`detail` của `422` là câu tiếng Việt cụ thể ("Đoạn ghi âm quá ngắn (180 ms)…") — nên hiện nguyên văn.
 
 ---
 
-# Phần B — Tổng quan âm thanh (TTS)
+## 2. `POST /tools/audio-overview/estimate` — ước tính độ dài
 
-Tập được render **nền** bằng Celery: submit → nhận `task_id` → poll → tải file.
+> Endpoint này **đi kèm bản vá voice**. Gateway của bản chính thức hiện chưa có (gọi ra `404`) —
+> nó lên cùng lúc với patch voice mà đội FE ghép vào.
 
-## Bước B1. Ước tính độ dài **trước khi** cho chọn
+Chỉ đếm chữ, **không gọi LLM**, trả về ngay. Dùng để biết nguồn đủ cho bao nhiêu phút **trước khi** đặt lệnh.
 
-```js
-POST /tools/audio-overview/estimate
-{ "document_ids": ["d1","d2"], "mode": "narration" }
-→ { "source_words": 600, "feasible_minutes": 5,
-    "lengths": { "short": 2, "default": 4, "long": 5 }, "max_minutes": 30 }
+**Body**: JSON — `text` hoặc `document_ids` (giống endpoint #3), thêm `mode`.
+
+```bash
+curl -X POST http://host:5050/tools/audio-overview/estimate \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{"document_ids":["d1","d2"],"mode":"narration"}'
 ```
-
-Chỉ đếm chữ, **không gọi LLM**, trả về tức thì.
-
-**Không hỏi người dùng số phút.** Họ không biết một tập 30 phút cần bao nhiêu tài liệu — xin 30 phút
-từ 500 từ chỉ tổ đẻ ra chữ độn. Cho chọn **Ngắn / Mặc định / Dài**, kèm số phút ước tính trên nhãn.
-
-Ước tính hỏng thì **im lặng, không chặn** — đây là gợi ý, không phải cổng chặn.
-
-> 📁 `AudioOverviewModal.js` (khối `AUDIO_LENGTHS`)
-
-## Bước B2. Submit
-
-```js
-POST /tools/audio-overview
-{
-  "language": "vi",
-  "mode": "narration",          // "narration" | "podcast"
-  "voice_gender": "male",       // "male" | "female"
-  "tone": "tu_nhien",           // trang_trong | tu_nhien | soi_noi | cham_rai
-  "length": "default",          // short | default | long
-  "conversation_id": "123",     // BẮT BUỘC nếu muốn tập gắn với hội thoại
-  "instruction": "...",         // narration, ≤ 2000 ký tự
-  "document_ids": ["d1"]        // tối đa 5; hoặc dùng "text"
-}
-→ { "task_id": "...", "status": "submitted", "timestamp": "..." }
-```
-
-Ràng buộc: `focus` (≤500) chỉ cho `podcast`, `instruction` (≤2000) chỉ cho `narration` — gửi sai chỗ
-là **400**. Nguồn dưới **100 ký tự** thì tập sẽ FAILURE.
-
-> ⚠ **Bẫy số 4** — `conversation_id` phải nằm trong **body**. Gateway chỉ chuyển tiếp body, query param
-> rụng mất và mọi tập rơi vào thư mục `no-session`.
-
-## Bước B3. Poll trạng thái
-
-```js
-GET /tools/audio-overview/status/{task_id}
-```
-
-| Đang chạy | Xong | Hỏng |
-|---|---|---|
-| `status: "processing"` + `progress: {done, total, note}` | **`object_key` xuất hiện**, `status` = `null` | `status: "FAILURE"` + `message` |
-
-> ⚠ **Bẫy số 5 (đắt nhất)** — tập đã xong **không có** trường `status`. Suy ra hoàn tất bằng **sự tồn
-> tại của `object_key`**, đừng chờ một giá trị status nào cả.
->
-> Và **đừng gửi `startTime`** khi poll: bộ kiểm zombie của gateway thấy body không có `status` sẽ coi là
-> "kẹt" và ghi đè thành `FAILURE`, **phá tập đã render xong**. Trần chờ để phía client tự giữ.
-
-`progress.note` là tên pha thật (`script`, `tts 7/23`, `stitch`) — hiện thẳng cho người dùng.
-`status: "cancelled"` là trạng thái **kết thúc**, phải xử lý như terminal nếu không sẽ poll vô hạn.
-
-> 📁 `useTaskPoller.js` · `classifyStatus()` trong `stores/useAudioOverviewStore.js`
-
-## Bước B4. Đọc kết quả và **hiện cảnh báo**
 
 ```json
 {
-  "object_key": "audio-overviews/123/20-08-2026/ep_<task>.mp3",
-  "audio_format": "mp3", "duration_sec": 641.6, "size_bytes": 10265900,
+  "source_words": 600,
+  "mode": "narration",
+  "feasible_minutes": 5,
+  "lengths": { "short": 2, "default": 4, "long": 5 },
+  "max_minutes": 30,
+  "documents": [{ "id": "d1", "name": "Báo cáo", "words": 420 }]
+}
+```
+
+`lengths` là số phút tương ứng ba mức của endpoint #3. Nguồn càng nhiều thì ba số này càng lớn.
+
+---
+
+## 3. `POST /tools/audio-overview` — đặt lệnh tạo tập
+
+**Body**: JSON. Không trường nào bắt buộc về mặt schema, nhưng **phải có `text` hoặc `document_ids`** (thiếu → `400`).
+
+| Tham số | Kiểu | Mặc định | Giá trị / giới hạn |
+|---|---|---|---|
+| `text` | string | — | nguồn dán thẳng; **tối thiểu 100 ký tự** |
+| `document_ids` | string[] | — | tối đa **5** tài liệu |
+| `document_id` | string | — | dạng một tài liệu |
+| `conversation_id` | string | — | ≤128. **Phải ở body** (query param bị gateway bỏ) |
+| `mode` | enum | `narration` | `narration` \| `podcast` |
+| `voice_gender` | enum | `male` | `male` \| `female` |
+| `tone` | enum | `tu_nhien` | `trang_trong` \| `tu_nhien` \| `soi_noi` \| `cham_rai` |
+| `length` | enum | `default` | `short` \| `default` \| `long` — server suy số phút từ nguồn |
+| `instruction` | string | — | **chỉ `narration`**, ≤2000 ký tự |
+| `focus` | string | — | **chỉ `podcast`**, ≤500 ký tự |
+| `language` | enum | `vi` | chỉ `vi` |
+| `target_minutes` | int | — | 1..30. Đường cũ; có thì **thắng** `length`. Khuyến nghị dùng `length` |
+| `temperature` | float | `0.7` | 0.0..2.0 |
+
+```bash
+curl -X POST http://host:5050/tools/audio-overview \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -d '{
+    "document_ids": ["d1"],
+    "conversation_id": "123",
+    "mode": "narration",
+    "voice_gender": "male",
+    "tone": "trang_trong",
+    "length": "default",
+    "instruction": "Đọc thành bản trình bày mạch lạc."
+  }'
+```
+
+```json
+{ "task_id": "81cb8275-...", "status": "submitted", "timestamp": "2026-08-20T16:58:03" }
+```
+
+**Lỗi `400`**: thiếu nguồn · `instruction` gửi cho `podcast` · `focus` gửi cho `narration`.
+**Lỗi `422`**: sai enum, `target_minutes` ngoài 1..30, vượt giới hạn độ dài trường.
+
+---
+
+## 4. `GET /tools/audio-overview/status/{task_id}` — theo dõi
+
+Poll khoảng **3–5 giây/lần**. Ba trạng thái:
+
+**Đang chạy**
+
+```json
+{ "status": "processing", "task_id": "...", "message": "Tổng quan âm thanh đang được tạo…",
+  "progress": { "done": 7, "total": 23, "note": "tts 7/23" } }
+```
+
+`note` là pha thật: `sources` → `script` → `tts n/m` → `stitch` → `uploaded`.
+
+**Xong** — ⚠ **không có trường `status`**. Nhận biết bằng sự tồn tại của **`object_key`**:
+
+```json
+{
+  "task_id": "...",
+  "object_key": "audio-overviews/123/20-08-2026/ep_81cb8275.mp3",
+  "audio_format": "mp3",
+  "duration_sec": 641.6,
+  "size_bytes": 10265900,
   "transcript": [{ "speaker": "narrator", "text": "..." }],
   "metadata": {
     "mode": "narration", "voice_gender": "male", "tone_label": "Trang trọng",
     "length": "default", "target_minutes": 4,
-    "sources": { "compacted": [...] },
-    "warnings": [{ "code": "...", "message": "..." }]
+    "sources": { "compacted": [{ "id": "d1", "name": "...", "tokens_before": 9000, "tokens_after": 1200 }] },
+    "warnings": [{ "code": "duration_off_target", "message": "Thời lượng thực tế 1.3 phút, lệch 34%…" }]
   }
 }
 ```
 
-**`metadata.warnings` phải được hiển thị.** Ba tình huống dưới đây đều trả tập bình thường,
-không mã lỗi nào — không hiện thì người dùng chờ xong mà không biết mình nhận bản đã xuống cấp:
+`speaker` ∈ `host` \| `guest` \| `narrator`.
+
+**Hỏng**: `{"status": "FAILURE", "message": "<câu tiếng Việt>"}` · **Đã huỷ**: `{"status": "cancelled"}` (là trạng thái **kết thúc**).
+
+### `metadata.warnings` — tập vẫn trả về bình thường nhưng đã xuống cấp
 
 | `code` | Nghĩa |
 |---|---|
-| `voice_downgraded` | giọng chất lượng cao không dùng được, cả tập đọc bằng giọng dự phòng |
-| `audio_format_fallback` | máy chủ thiếu ffmpeg → lưu WAV, to gấp ~10, không tua được |
-| `duration_off_target` | thời lượng lệch xa số phút đã tính |
-| `target_clamped` | nguồn không đủ nên đã hạ số phút |
+| `voice_downgraded` | giọng chất lượng cao không dùng được → cả tập đọc bằng giọng dự phòng |
+| `audio_format_fallback` | máy chủ thiếu ffmpeg → lưu WAV, dung lượng gấp ~10, không tua được |
+| `duration_off_target` | thời lượng lệch > 30% so với mục tiêu |
+| `target_clamped` | nguồn không đủ nên server đã hạ số phút |
 
-`metadata.sources.compacted` liệt kê tài liệu bị nén cho vừa ngữ cảnh — cũng nên nói ra.
+Danh sách rỗng khi mọi thứ bình thường.
 
-> 📁 `AudioOverviewPanel.js`
+---
 
-## Bước B5. Phát file
+## 5. `GET /tools/audio-overview/{task_id}/file` — tải audio
+
+Trả **bytes** (`audio/mpeg` hoặc `audio/wav`), stream. Cần header `Authorization`.
 
 ```js
-GET /tools/audio-overview/{task_id}/file    // fetch dạng BLOB, kèm Authorization
-const url = URL.createObjectURL(blob);      // rồi mới gán vào <audio src>
+const res = await fetch(`/tools/audio-overview/${taskId}/file`, {
+  headers: { Authorization: `Bearer ${token}` },
+});
+const url = URL.createObjectURL(await res.blob());
 ```
 
-> ⚠ Không trỏ thẳng `<audio src>` vào endpoint: thẻ media **không gửi header `Authorization`**.
-> Nhớ `URL.revokeObjectURL()` khi đóng — mỗi tập vài chục MB.
-
-## Bước B6. Huỷ và xoá
-
-| Việc | Gọi | Trả về |
-|---|---|---|
-| Huỷ giữa chừng | `POST /tools/audio-overview/{id}/cancel` | `{ status: "cancel_requested" }` — huỷ **hợp tác**, dừng sau một lô TTS |
-| Xoá tập | `DELETE /tools/audio-overview/{id}` | **409** nếu đang chạy → huỷ trước rồi xoá |
-
----
-
-## Lưu tập ở đâu
-
-Tập **không** nằm trong DB (ràng buộc `info_table_type_check` chỉ cho 4 loại). Bản devspace giữ ở
-`localStorage`, khoá `im.audioOverview.<conversationId>.<mode>`.
-
-> Đổi tên khoá thì **phải kèm bước migration**: một tập chạy 45 phút mà handle duy nhất là cái khoá này
-> — đổi tên mà không chuyển giá trị là bỏ rơi job đang chạy: không thấy, không huỷ được, vẫn đang render.
->
-> 📁 `hydrate()` trong `stores/useAudioOverviewStore.js`
-
----
-
-## Bảng tra file tham chiếu
-
-| Việc | File trong `mta-fe-devspace` |
+| Mã | Nghĩa |
 |---|---|
-| Proxy `/db` `/llm` `/tools` | `frontend-server/server.js` · `frontend/src/setupProxy.js` |
-| Mã hoá WAV | `frontend/src/utils/wavEncoder.js` |
-| Ghi âm + đo mức | `frontend/src/hooks/useVoiceRecorder.js` |
-| Nút mic + đồng hồ + phổ | `features/chat/components/MicButton.js` · `VoiceWaveform.js` |
-| Gọi STT + dịch mã lỗi | `features/chat/api/stt.js` |
-| Gọi 6 API tập | `features/analysis/api/audioOverview.js` |
-| Modal chọn giọng/tông/độ dài | `features/analysis/components/AudioOverviewModal.js` |
-| Panel nghe + transcript + cảnh báo | `features/analysis/components/AudioOverviewPanel.js` |
-| Dòng trạng thái + poll | `features/analysis/components/AudioOverviewTool.js` · `hooks/useTaskPoller.js` |
-| Store + localStorage | `stores/useAudioOverviewStore.js` |
-| Gateway (tham chiếu backend) | `backend-fastapi/app/routes/voice.py` · `llm.py` |
+| `409` | tập **chưa xong hoặc `task_id` không tồn tại** — cả hai đều đọc là "chưa có kết quả", vì Celery không phân biệt được id lạ với việc đang xếp hàng. Poll `status` trước |
+| `404` | tập đã xong nhưng file audio không còn trên kho |
 
 ---
 
-## Checklist trước khi bàn giao
+## 6. `POST /tools/audio-overview/{task_id}/cancel` — huỷ
 
-- [ ] `/tools` giữ tiền tố ở production, **không** giữ ở dev-server
-- [ ] Blob ghi âm luôn có tên `voice.wav`
-- [ ] Nút mic mờ + nêu lý do khi không có secure context
-- [ ] Poll **không** gửi `startTime`; nhận biết "xong" bằng `object_key`
-- [ ] `status: "cancelled"` xử lý như trạng thái kết thúc
-- [ ] `metadata.warnings` được hiển thị
-- [ ] File tải bằng blob + `Authorization`, có `revokeObjectURL`
-- [ ] Mã lỗi STT giữ nguyên `detail` của server, không gộp thành một câu chung
-- [ ] Xoá tập đang chạy: huỷ trước, xử lý 409
+```json
+{ "task_id": "...", "status": "cancel_requested", "timestamp": "..." }
+```
+
+Huỷ **hợp tác**: lệnh được ghi nhận ngay, tập dừng sau khi xong lô TTS đang chạy (vài giây). Gọi nhiều lần vô hại.
+
+## 7. `DELETE /tools/audio-overview/{task_id}` — xoá
+
+```json
+{ "task_id": "...", "status": "ok", "deleted": true }
+```
+
+`409` nếu tập đang chạy → huỷ trước rồi xoá.
+
+---
+
+## Bốn quy tắc dễ sai
+
+1. **Nhận biết "xong" bằng `object_key`**, không phải bằng `status` — tập hoàn tất không mang trường `status`.
+2. **Không gửi `startTime` khi poll.** Bộ kiểm zombie của gateway thấy body không có `status` sẽ coi là kẹt và ghi đè thành `FAILURE`, phá tập đã render xong.
+3. **`conversation_id` đặt trong body.** Gateway không chuyển tiếp query param; thiếu thì tập rơi vào thư mục `no-session`.
+4. **`status: "cancelled"` là trạng thái kết thúc.** Không xử lý như terminal sẽ poll vô hạn.
+
+## Mã lỗi dùng chung
+
+| Mã | Nghĩa |
+|---|---|
+| `400` | body không phải JSON hợp lệ, hoặc sai tổ hợp trường |
+| `401` | thiếu / sai / hết hạn token |
+| `403` | máy chủ tắt tính năng |
+| `422` | sai kiểu, sai enum, vượt giới hạn |
+| `500` | lỗi phía máy chủ — `message` là câu tiếng Việt, chi tiết kỹ thuật nằm ở log |
+| `502` | gateway không gọi được dịch vụ AI |
